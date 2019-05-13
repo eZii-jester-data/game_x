@@ -1,0 +1,3 @@
+interface TitlePanelProps {
+    title: string;
+}
