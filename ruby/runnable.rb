@@ -1,7 +1,5 @@
 require 'mittsu'
-# bundle exec ruby runnable.rb
-# where's the path 
-# in this livestream
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 ASPECT = SCREEN_WIDTH.to_f / SCREEN_HEIGHT.to_f
@@ -41,8 +39,6 @@ class Cube
   end
 end
 
-test_player_adding_object = Cube.new
-
 scene.add(plane)
 
 renderer.window.on_mouse_button_pressed do |button, position|
@@ -67,6 +63,32 @@ console_function = -> {
 }
 
 cube_index = 0
+renderer.window.on_key_typed do |key|
+  case key
+  when GLFW_KEY_K
+    scene.add(Cube.new(color: 0x42e5f4).mittsu_object)
+  when GLFW_KEY_L
+    scene.add(Cube.new(color: 0xf44941).mittsu_object)
+  when GLFW_KEY_M
+    scene.add(Cube.new(color: 0xf441dc).mittsu_object)
+  when GLFW_KEY_S
+    cube_index += 1
+    if cube_index == CUBES.length
+      cube_index = 0
+    end
+    puts cube_index
+    puts CUBES.length
+  when GLFW_KEY_T
+    cube_index -= 1
+    if cube_index == -1
+      cube_index = [CUBES.length - 1, 0].min
+    end
+    puts cube_index
+    puts CUBES.length
+  end
+end
+
+
 command_pallete = -> {
   if renderer.window.key_down?(GLFW_KEY_A)
     plane.rotation.x += 0.1
@@ -107,19 +129,7 @@ command_pallete = -> {
   if renderer.window.key_down?(GLFW_KEY_J)
     camera.position.z += 0.1
   end
-
-  if renderer.window.key_down?(GLFW_KEY_K)
-    scene.add(Cube.new(color: 0x42e5f4).mittsu_object)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_L)
-    scene.add(Cube.new(color: 0xf44941).mittsu_object)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_M)
-    scene.add(Cube.new(color: 0xf441dc).mittsu_object)
-  end
-
+  
   if renderer.window.key_down?(GLFW_KEY_N)
     CUBES[cube_index].position.x += 0.1
   end
@@ -136,21 +146,6 @@ command_pallete = -> {
     CUBES[cube_index].position.y -= 0.1
   end
 
-  if renderer.window.key_down?(GLFW_KEY_S)
-    cube_index += 1
-    if cube_index == CUBES.length # 
-      cube_index = 0
-    end
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_T)
-    cube_index -= 1
-
-    if cube_index == -1
-      cube_index = CUBES.length - 1
-    end
-  end
-
   if renderer.window.key_down?(GLFW_KEY_U)
     scene.remove(plane)
   end
@@ -164,7 +159,7 @@ command_pallete = -> {
   end
 
   if renderer.window.key_down?(GLFW_KEY_X)
-    p LOCAL_FUNCTIONS
+    # p LOCAL_FUNCTIONS
   end
 
   if renderer.window.key_down?(GLFW_KEY_Y)

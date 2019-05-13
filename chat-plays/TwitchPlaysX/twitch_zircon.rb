@@ -9,6 +9,7 @@ client = Zircon.new(
   password: ENV["TWITCH_OAUTH_TOKEN"]
 )
 
+
 removed_colors = [:black, :white, :light_black, :light_white]
 colors = String.colors - removed_colors
 
@@ -41,19 +42,9 @@ client.on_message do |message|
  end
 
  if message.body.to_s =~ /key press (\w)/
-  puts $1
-
-  keypress = """
-    osascript -e 'tell application \"System Events\"
-      key down \"#{$1}\"
-      delay 1
-      key up \"#{$1}\"
-    end tell'
-  """
-
-  puts keypress
-
-  `#{keypress}`
+  `osascript -e 'tell application \"System Events\"
+      keystroke \"#{$1}\"
+    end tell'`
  end
 
 end

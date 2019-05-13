@@ -8,4 +8,9 @@ You are in a maze of twisty passages, all alike.
 
 =
 #lemonandroid
-key press t
+move plane
+key press k
+key press m
+key press s
+key press l
+
