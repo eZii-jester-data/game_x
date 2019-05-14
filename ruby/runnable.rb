@@ -1,15 +1,15 @@
 require 'mittsu'
 require 'byebug'
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-ASPECT = SCREEN_WIDTH.to_f / SCREEN_HEIGHT.to_f
+screen_width = 800
+screen_height = 600
+aspect = screen_width.to_f / screen_height.to_f
 
-renderer = Mittsu::OpenGLRenderer.new width: SCREEN_WIDTH, height: SCREEN_HEIGHT, title: 'TOOLX'
+renderer = Mittsu::OpenGLRenderer.new width: screen_width, height: screen_height, title: 'TOOLX'
 
 scene = Mittsu::Scene.new
 
-camera = Mittsu::PerspectiveCamera.new(75.0, ASPECT, 0.1, 1000.0)
+camera = Mittsu::PerspectiveCamera.new(75.0, aspect, 0.1, 1000.0)
 camera.position.z = 5.0
 
 plane = Mittsu::Mesh.new(
@@ -18,6 +18,7 @@ plane = Mittsu::Mesh.new(
 )
 
 CUBES = []
+cube_index = 0
 
 class Cube
   attr_accessor :color, :mittsu_object
@@ -42,13 +43,6 @@ end
 
 scene.add(plane)
 
-renderer.window.on_mouse_button_pressed do |button, position|
-  # puts position.x
-  # puts CUBES.first.position.x
-  # puts position.y 
-  # puts CUBES.first.position.y
-end
-
 waiting_for_w_console_command = false
 
 console_function = -> {
@@ -63,24 +57,23 @@ console_function = -> {
   end
 }
 
-cube_index = 0
 previously_selected_cube_color = nil
 renderer.window.on_key_typed do |key|
   case key
   when GLFW_KEY_A
-    plane.rotation.x += 0.1
+    plane.rotation.x += 0.5
   when GLFW_KEY_B
-    plane.rotation.y += 0.1
+    plane.rotation.y += 0.5
   when GLFW_KEY_C
-    plane.rotation.x -= 0.1
+    plane.rotation.x -= 0.5
   when GLFW_KEY_D
     plane.rotation.y -= 0.1
   when GLFW_KEY_E
-    camera.rotation.x += 0.1
+    camera.position.x -= 0.1
   when GLFW_KEY_F
-    camera.rotation.y += 0.1
+    camera.position.y -= 0.1
   when GLFW_KEY_G
-    camera.rotation.z += 0.1
+    camera.position.z -= 0.1
   when GLFW_KEY_H
     camera.position.x += 0.1
   when GLFW_KEY_I
@@ -124,47 +117,25 @@ renderer.window.on_key_typed do |key|
   end
 end
 
+mouse_position = Mittsu::Vector2.new
 
-# command_pallete = -> {
-#   if renderer.window.key_down?(GLFW_KEY_W)
-#     instance_exec(&console_function)
-#   end
+renderer.window.on_resize do |width, height|
+  screen_width, screen_height = width, height
+end
 
-#   if renderer.window.key_down?(GLFW_KEY_X)
-#     # p LOCAL_FUNCTIONS
-#   end
+raycaster = Mittsu::Raycaster.new
 
-#   if renderer.window.key_down?(GLFW_KEY_Y)
-#     # browse remote functions / list top ten remote functions (by downloads)
-#   end
-
-#   if renderer.window.key_down?(GLFW_KEY_Z)
-#     # download remote function
-#   end
-# }
-
-# command_pallete_1 = -> {
-#   if renderer.window.key_down?(GLFW_KEY_A)
-#     camera.rotation.x += 0.1
-#   end
-
-#   if renderer.window.key_down?(GLFW_KEY_B)
-#     camera.rotation.x -= 0.1
-#   end
-
-#   if renderer.window.key_down?(GLFW_KEY_C)
-#     camera.rotation.y -= 0.1
-#   end
-
-#   if renderer.window.key_down?(GLFW_KEY_D)
-#     camera.rotation.y -= 0.1
-#   end
-
-#   if renderer.window.key_down?(GLFW_KEY_W)
-#     instance_exec(&console_function)
-#   end
-# }
-
+renderer.window.on_mouse_button_pressed do |button, position|
+  puts screen_height
+  puts screen_width
+  puts position
+  mouse_position.x = ((position.x/screen_width)*2.0-1.0)
+  mouse_position.y = ((position.y/screen_height)*-2.0+1.0)
+  puts mouse_position
+  raycaster.set_from_camera(mouse_position, camera)
+  intersects = raycaster.intersect_objects(CUBES)
+  puts intersects.count
+end
 
 renderer.window.run do
   renderer.render(scene, camera)
