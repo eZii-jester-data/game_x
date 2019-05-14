@@ -1,4 +1,5 @@
 require 'mittsu'
+require 'byebug'
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -63,139 +64,108 @@ console_function = -> {
 }
 
 cube_index = 0
+previously_selected_cube_color = nil
 renderer.window.on_key_typed do |key|
   case key
+  when GLFW_KEY_A
+    plane.rotation.x += 0.1
+  when GLFW_KEY_B
+    plane.rotation.y += 0.1
+  when GLFW_KEY_C
+    plane.rotation.x -= 0.1
+  when GLFW_KEY_D
+    plane.rotation.y -= 0.1
+  when GLFW_KEY_E
+    camera.rotation.x += 0.1
+  when GLFW_KEY_F
+    camera.rotation.y += 0.1
+  when GLFW_KEY_G
+    camera.rotation.z += 0.1
+  when GLFW_KEY_H
+    camera.position.x += 0.1
+  when GLFW_KEY_I
+    camera.position.y += 0.1
+  when GLFW_KEY_J
+    camera.position.z += 0.1
   when GLFW_KEY_K
     scene.add(Cube.new(color: 0x42e5f4).mittsu_object)
   when GLFW_KEY_L
     scene.add(Cube.new(color: 0xf44941).mittsu_object)
   when GLFW_KEY_M
     scene.add(Cube.new(color: 0xf441dc).mittsu_object)
+  when GLFW_KEY_N
+    CUBES[cube_index].position.x += 0.1
+  when GLFW_KEY_O
+    CUBES[cube_index].position.x -= 0.1
+  when GLFW_KEY_P
+    CUBES[cube_index].position.y += 0.1
+  when GLFW_KEY_R
+    CUBES[cube_index].position.y -= 0.1
   when GLFW_KEY_S
+    CUBES[cube_index].material.color.set_hex(previously_selected_cube_color) if previously_selected_cube_color != nil
     cube_index += 1
     if cube_index == CUBES.length
       cube_index = 0
     end
-    puts cube_index
-    puts CUBES.length
+    previously_selected_cube_color = CUBES[cube_index].material.color.hex
+    CUBES[cube_index].material.color.set_hex(0xf4e842)
   when GLFW_KEY_T
+    CUBES[cube_index].material.color.set_hex(previously_selected_cube_color)  if previously_selected_cube_color != nil
     cube_index -= 1
     if cube_index == -1
       cube_index = [CUBES.length - 1, 0].min
     end
-    puts cube_index
-    puts CUBES.length
+    previously_selected_cube_color = CUBES[cube_index].material.color.hex
+    CUBES[cube_index].material.color.set_hex(0xf4e842)
+  when GLFW_KEY_U
+    scene.remove(plane)
+  when GLFW_KEY_V
+    scene.add(plane)
   end
 end
 
 
-command_pallete = -> {
-  if renderer.window.key_down?(GLFW_KEY_A)
-    plane.rotation.x += 0.1
-  end
+# command_pallete = -> {
+#   if renderer.window.key_down?(GLFW_KEY_W)
+#     instance_exec(&console_function)
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_B)
-    plane.rotation.y += 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_X)
+#     # p LOCAL_FUNCTIONS
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_C)
-    plane.rotation.x -= 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_Y)
+#     # browse remote functions / list top ten remote functions (by downloads)
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_D)
-    plane.rotation.y -= 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_Z)
+#     # download remote function
+#   end
+# }
 
-  if renderer.window.key_down?(GLFW_KEY_E)
-    camera.rotation.x += 0.1
-  end
+# command_pallete_1 = -> {
+#   if renderer.window.key_down?(GLFW_KEY_A)
+#     camera.rotation.x += 0.1
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_F)
-    camera.rotation.y += 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_B)
+#     camera.rotation.x -= 0.1
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_G)
-    camera.rotation.z += 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_C)
+#     camera.rotation.y -= 0.1
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_H)
-    camera.position.x += 0.1
-  end
+#   if renderer.window.key_down?(GLFW_KEY_D)
+#     camera.rotation.y -= 0.1
+#   end
 
-  if renderer.window.key_down?(GLFW_KEY_I)
-    camera.position.y += 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_J)
-    camera.position.z += 0.1
-  end
-  
-  if renderer.window.key_down?(GLFW_KEY_N)
-    CUBES[cube_index].position.x += 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_O)
-    CUBES[cube_index].position.x -= 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_P)
-    CUBES[cube_index].position.y += 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_R)
-    CUBES[cube_index].position.y -= 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_U)
-    scene.remove(plane)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_V)
-    scene.add(plane)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_W)
-    instance_exec(&console_function)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_X)
-    # p LOCAL_FUNCTIONS
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_Y)
-    # browse remote functions / list top ten remote functions (by downloads)
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_Z)
-    # download remote function
-  end
-}
-
-command_pallete_1 = -> {
-  if renderer.window.key_down?(GLFW_KEY_A)
-    camera.rotation.x += 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_B)
-    camera.rotation.x -= 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_C)
-    camera.rotation.y -= 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_D)
-    camera.rotation.y -= 0.1
-  end
-
-  if renderer.window.key_down?(GLFW_KEY_W)
-    instance_exec(&console_function)
-  end
-}
+#   if renderer.window.key_down?(GLFW_KEY_W)
+#     instance_exec(&console_function)
+#   end
+# }
 
 
 renderer.window.run do
-  instance_exec(&command_pallete)
-
   renderer.render(scene, camera)
 end
