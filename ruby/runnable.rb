@@ -1,23 +1,10 @@
 require 'mittsu'
 require 'byebug'
 
-screen_width = 800
-screen_height = 600
-aspect = screen_width.to_f / screen_height.to_f
 
-renderer = Mittsu::OpenGLRenderer.new width: screen_width, height: screen_height, title: 'TOOLX'
-
-scene = Mittsu::Scene.new
-
-camera = Mittsu::PerspectiveCamera.new(75.0, aspect, 0.1, 1000.0)
-camera.position.z = 5.0
-
-plane = Mittsu::Mesh.new(
-  Mittsu::BoxGeometry.new(1.0, 10.0, 10.0),
-  Mittsu::MeshBasicMaterial.new(color: 0x00ff00)
-)
 
 CUBES = []
+SELECTED_CUBE_COLOR = 0xf4e842
 cube_index = 0
 
 class Cube
@@ -40,6 +27,24 @@ class Cube
     @mittsu_object.public_send(method_name, *args, &block)
   end
 end
+
+
+@screen_width = 800
+@screen_height = 600
+aspect = @screen_width.to_f / @screen_height.to_f
+
+renderer = Mittsu::OpenGLRenderer.new width: @screen_width, height: @screen_height, title: 'TOOLX'
+
+scene = Mittsu::Scene.new
+
+camera = Mittsu::PerspectiveCamera.new(75.0, aspect, 0.1, 1000.0)
+camera.position.z = 5.0
+
+plane = Mittsu::Mesh.new(
+  Mittsu::BoxGeometry.new(1.0, 10.0, 10.0),
+  Mittsu::MeshBasicMaterial.new(color: 0x00ff00)
+)
+
 
 scene.add(plane)
 
@@ -101,7 +106,7 @@ renderer.window.on_key_typed do |key|
       cube_index = 0
     end
     previously_selected_cube_color = CUBES[cube_index].material.color.hex
-    CUBES[cube_index].material.color.set_hex(0xf4e842)
+    CUBES[cube_index].material.color.set_hex(SELECTED_CUBE_COLOR)
   when GLFW_KEY_T
     CUBES[cube_index].material.color.set_hex(previously_selected_cube_color)  if previously_selected_cube_color != nil
     cube_index -= 1
@@ -109,7 +114,7 @@ renderer.window.on_key_typed do |key|
       cube_index = [CUBES.length - 1, 0].min
     end
     previously_selected_cube_color = CUBES[cube_index].material.color.hex
-    CUBES[cube_index].material.color.set_hex(0xf4e842)
+    CUBES[cube_index].material.color.set_hex(SELECTED_CUBE_COLOR)
   when GLFW_KEY_U
     scene.remove(plane)
   when GLFW_KEY_V
@@ -119,7 +124,7 @@ end
 
 
 renderer.window.on_resize do |width, height|
-  screen_width, screen_height = width, height
+  @screen_width, @screen_height = width, height
   renderer.width = width
   renderer.height = height
   camera.aspect = width.to_f / height.to_f
@@ -128,34 +133,76 @@ end
 
 raycaster = Mittsu::Raycaster.new
 
-objects_being_moved_by_mouse = []
-mouse_position = nil
+object_being_moved_by_mouse = nil
+
+previously_selected_cube_color_1 = nil
 renderer.window.on_mouse_button_pressed do |button, position|
-  mouse_position_normalized = Mittsu::Vector2.new
-  mouse_position_normalized.x = (((position.x * 2)/screen_width)*2.0-1.0)
-  mouse_position_normalized.y = (((position.y * 2)/screen_height)*-2.0+1.0)
-  mouse_position = position.multiply_scalar(2)
-  raycaster.set_from_camera(mouse_position_normalized, camera)
-  objects_being_moved_by_mouse = raycaster
+  normalized = normalize_2d_click(position)
+  raycaster.set_from_camera(normalized, camera)
+  object_being_moved_by_mouse = raycaster
     .intersect_objects(CUBES)
-    .map do |intersected_object_and_meta_information|
-      intersected_object_and_meta_information[:object]
+    .map \
+      do |intersected_object_and_meta_information|
+        intersected_object_and_meta_information[:object]
+      end
+    .first
+
+  if object_being_moved_by_mouse
+    previously_selected_cube_color_1 = object_being_moved_by_mouse.material.color
+    object_being_moved_by_mouse.material.color = SELECTED_CUBE_COLOR
+  end
+end
+
+
+renderer.window.on_mouse_move do |position|
+  unless object_being_moved_by_mouse.nil?
+    normalized = normalize_2d_click(position)
+    normalized_3d = Mittsu::Vector3.new(
+      normalized.x,
+      normalized.y,
+      object_being_moved_by_mouse.position.z
+    )
+
+    click_to_world = screen_to_world(normalized_3d, camera)
+    object_being_moved_by_mouse.position.x = click_to_world.x
+    object_being_moved_by_mouse.position.y = click_to_world.y
   end
 end
 
 renderer.window.on_mouse_button_released do |button, position|
-  mouse_position_click_release = position.multiply_scalar(2)
-  translation_vector = (mouse_position_click_release.sub(mouse_position))
-  byebug
+  unless object_being_moved_by_mouse.nil?
+    object_been_moved_by_mouse = object_being_moved_by_mouse
+    object_being_moved_by_mouse = nil
+    normalized = normalize_2d_click(position)
+    normalized_3d = Mittsu::Vector3.new(
+      normalized.x,
+      normalized.y,
+      object_been_moved_by_mouse.position.z
+    )
 
-  # objects_being_moved_by_mouse.each do |object_being_moved_by_mouse|
-  #   object_being_moved_by_mouse.position.x += translation_vector.x
-  #   object_being_moved_by_mouse.position.y += translation_vector.y
-  # end
+    click_to_world = screen_to_world(normalized_3d, camera)
+    object_been_moved_by_mouse.position.x = click_to_world.x
+    object_been_moved_by_mouse.position.y = click_to_world.y
+
+    object_been_moved_by_mouse.material.color = previously_selected_cube_color_1
+  end
 end
 
 renderer.window.on_scroll do |offset|
   camera.position.z += offset.y
+end
+
+def normalize_2d_click(position)
+  new_position = Mittsu::Vector2.new
+  new_position.x = (((position.x * 2)/@screen_width)*2.0-1.0)
+  new_position.y = (((position.y * 2)/@screen_height)*-2.0+1.0)
+  return new_position
+end
+
+def screen_to_world(vector, camera)
+  vector.unproject(camera).sub(camera.position).normalize()
+  distance = -camera.position.z / vector.z
+  vector.multiply_scalar(distance).add(camera.position)
 end
 
 renderer.window.run do
