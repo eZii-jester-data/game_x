@@ -117,24 +117,45 @@ renderer.window.on_key_typed do |key|
   end
 end
 
-mouse_position = Mittsu::Vector2.new
 
 renderer.window.on_resize do |width, height|
   screen_width, screen_height = width, height
+  renderer.width = width
+  renderer.height = height
+  camera.aspect = width.to_f / height.to_f
+  camera.update_projection_matrix
 end
 
 raycaster = Mittsu::Raycaster.new
 
+objects_being_moved_by_mouse = []
+mouse_position = nil
 renderer.window.on_mouse_button_pressed do |button, position|
-  puts screen_height
-  puts screen_width
-  puts position
-  mouse_position.x = ((position.x/screen_width)*2.0-1.0)
-  mouse_position.y = ((position.y/screen_height)*-2.0+1.0)
-  puts mouse_position
-  raycaster.set_from_camera(mouse_position, camera)
-  intersects = raycaster.intersect_objects(CUBES)
-  puts intersects.count
+  mouse_position_normalized = Mittsu::Vector2.new
+  mouse_position_normalized.x = (((position.x * 2)/screen_width)*2.0-1.0)
+  mouse_position_normalized.y = (((position.y * 2)/screen_height)*-2.0+1.0)
+  mouse_position = position.multiply_scalar(2)
+  raycaster.set_from_camera(mouse_position_normalized, camera)
+  objects_being_moved_by_mouse = raycaster
+    .intersect_objects(CUBES)
+    .map do |intersected_object_and_meta_information|
+      intersected_object_and_meta_information[:object]
+  end
+end
+
+renderer.window.on_mouse_button_released do |button, position|
+  mouse_position_click_release = position.multiply_scalar(2)
+  translation_vector = (mouse_position_click_release.sub(mouse_position))
+  byebug
+
+  # objects_being_moved_by_mouse.each do |object_being_moved_by_mouse|
+  #   object_being_moved_by_mouse.position.x += translation_vector.x
+  #   object_being_moved_by_mouse.position.y += translation_vector.y
+  # end
+end
+
+renderer.window.on_scroll do |offset|
+  camera.position.z += offset.y
 end
 
 renderer.window.run do
