@@ -58,7 +58,9 @@ def start
 
     if message.body.to_s =~ /move plane/
       `
-        osascript -e 'tell application "System Events"
+        osascript -e 'tell application "System Events" to tell process "ruby"
+          set frontmost to true
+
           key down "a"
           delay 1
           key up "a"
@@ -68,13 +70,17 @@ def start
 
     if message.body.to_s =~ /key press (\w)(?:\s*(\d+)x)?/
       if $2
-        `osascript -e 'tell application \"System Events\"
+        `osascript -e 'tell application \"System Events\"  to tell process "ruby"
+          set frontmost to true
+
           repeat #{$2} times
             keystroke \"#{$1}\"
           end repeat
         end tell'`
       else
-        `osascript -e 'tell application \"System Events\"
+        `osascript -e 'tell application \"System Events\"  to tell process "ruby"
+          set frontmost to true
+
           keystroke \"#{$1}\"
         end tell'`
       end
