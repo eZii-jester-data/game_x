@@ -10,7 +10,7 @@ module SystemTests
             @output = drb_interface.test
         end
 
-        assert_match "hello from drb", @output
+        assert_equal [], @output
       end
     end
   end

@@ -1,4 +1,5 @@
 require_relative 'test_helper.rb'
+require 'byebug'
 
 module SystemTests
   class TestCommandRemapping < AbstractSystemTest
@@ -18,7 +19,9 @@ module SystemTests
 
         send_keypress_to_gam_window("z")
 
-        @output = console_stdout.gets
+        sleep 1
+
+        @output = drb_interface.played_commands.last.inspect
       end
 
       assert_match "FunctionWrapper", @output

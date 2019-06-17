@@ -1,6 +1,5 @@
 require 'mittsu'
 require_relative 'cube.rb/base.rb'
-require_relative 'lib/drb_server.rb'
 require 'pry-remote'
 require 'ast'
 
@@ -31,6 +30,9 @@ class Gam
     legacy_initialize
   end
 
+  def test
+    return self.played_commands
+  end
 
   def remap_functions
     print_local_functions
@@ -44,9 +46,9 @@ class Gam
 
     self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
   end
-
+  
   def execute_command(command_wrapper)
-    p command_wrapper.inspect
+    played_commands.push(command_wrapper)
   end
 
   def legacy_initialize
