@@ -1,5 +1,6 @@
 require 'mittsu'
 require_relative 'cube.rb/base.rb'
+require_relative 'lib/drb_server.rb'
 require 'pry-remote'
 require 'ast'
 
@@ -19,11 +20,12 @@ end
 class Gam
   SELECTED_CUBE_COLOR = 0xf4e842
   CUBES = []
-  attr_accessor :functions, :key_map
+  attr_accessor :functions, :key_map, :played_commands
 
   def initialize
     self.functions = []
     self.key_map = {}
+    self.played_commands = []
     load_local_functions
 
     legacy_initialize
@@ -168,6 +170,8 @@ class Gam
 
     previously_selected_cube_color_1 = nil
     @renderer.window.on_mouse_button_pressed do |button, position|
+      mouse_button_pressed_handlers(button,  position)
+
       normalized = normalize_2d_click(position)
       raycaster.set_from_camera(normalized, @camera)
       object_being_moved_by_mouse = raycaster
@@ -187,16 +191,9 @@ class Gam
 
     @renderer.window.on_mouse_move do |position|
       unless object_being_moved_by_mouse.nil?
-        normalized = normalize_2d_click(position)
-        normalized_3d = Mittsu::Vector3.new(
-          normalized.x,
-          normalized.y,
-          object_being_moved_by_mouse.position.z
-        )
-
-        click_to_world = screen_to_world(normalized_3d, @camera)
-        object_being_moved_by_mouse.position.x = click_to_world.x
-        object_being_moved_by_mouse.position.y = click_to_world.y
+        click_to_world_var = click_to_world(position)
+        object_being_moved_by_mouse.position.x = click_to_world_var.x
+        object_being_moved_by_mouse.position.y = click_to_world_var.y
       end
     end
 
@@ -204,16 +201,11 @@ class Gam
       unless object_being_moved_by_mouse.nil?
         object_been_moved_by_mouse = object_being_moved_by_mouse
         object_being_moved_by_mouse = nil
-        normalized = normalize_2d_click(position)
-        normalized_3d = Mittsu::Vector3.new(
-          normalized.x,
-          normalized.y,
-          object_been_moved_by_mouse.position.z
-        )
+        
+        click_to_world_var = click_to_world(position)
 
-        click_to_world = screen_to_world(normalized_3d, @camera)
-        object_been_moved_by_mouse.position.x = click_to_world.x
-        object_been_moved_by_mouse.position.y = click_to_world.y
+        object_been_moved_by_mouse.position.x = click_to_world_var.x
+        object_been_moved_by_mouse.position.y = click_to_world_var.y
 
         object_been_moved_by_mouse.material.color = previously_selected_cube_color_1
       end
@@ -245,6 +237,17 @@ class Gam
     vector.unproject(camera).sub(camera.position).normalize()
     distance = -camera.position.z / vector.z
     vector.multiply_scalar(distance).add(camera.position)
+  end
+
+  def click_to_world(position)
+    normalized = normalize_2d_click(position)
+    normalized_3d = Mittsu::Vector3.new(
+      normalized.x,
+      normalized.y,
+      object_been_moved_by_mouse.position.z
+    )
+
+    click_to_world = screen_to_world(normalized_3d, @camera)
   end
 
   def start
