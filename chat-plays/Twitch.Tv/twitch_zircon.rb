@@ -68,6 +68,15 @@ def start
       `
     end
 
+    if message.body.to_s =~ /([a-d])/
+      client.privmsg("#lemonandroid", "Logged #{$1} in")
+
+      `osascript -e 'tell application \"System Events\"  to tell process \"Google Chrome\"
+        set frontmost to true
+        keystroke \"#{$1}\"
+      end tell'`
+    end
+
     if message.body.to_s =~ /key press (\w)(?:\s*(\d+)x)?/
       if $2
         `osascript -e 'tell application \"System Events\"  to tell process "ruby"

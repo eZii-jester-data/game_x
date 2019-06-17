@@ -1,6 +1,6 @@
 require 'mittsu'
 require_relative 'cube.rb/base.rb'
-require 'byebug'
+require 'pry-remote'
 require 'ast'
 
 class FunctionWrapper
@@ -10,18 +10,41 @@ class FunctionWrapper
     @abstract_syntax_tree = RubyVM::AbstractSyntaxTree
       .parse_file(file_path)
   end
+
+  def to_s
+    "Function Wrapper"
+  end
 end
 
 class Gam
   SELECTED_CUBE_COLOR = 0xf4e842
   CUBES = []
-  attr_accessor :functions
+  attr_accessor :functions, :key_map
 
   def initialize
     self.functions = []
+    self.key_map = {}
     load_local_functions
 
     legacy_initialize
+  end
+
+
+  def remap_functions
+    print_local_functions
+
+    p "Enter index of unmapped function:" 
+    index_of_unmapped_function = gets.to_i
+    p "Enter key to map function to:"
+    keyboard_key = gets
+
+    keyboard_key.chomp!
+
+    self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
+  end
+
+  def execute_command(command_wrapper)
+    p command_wrapper.inspect
   end
 
   def legacy_initialize
@@ -42,7 +65,6 @@ class Gam
       Mittsu::BoxGeometry.new(1.0, 10.0, 10.0),
       Mittsu::MeshBasicMaterial.new(color: 0x00ff00)
     )
-
 
     @scene.add(plane)
 
@@ -122,9 +144,12 @@ class Gam
       when GLFW_KEY_X
         print_local_functions
       when GLFW_KEY_Y
-        # remap functions
+        remap_functions
       when GLFW_KEY_Z
-        # explore remote functions
+        # binding.remote_pry
+
+        self.execute_command(self.key_map['z'])
+        # print_remote_functions
       end
     end
 
@@ -200,7 +225,7 @@ class Gam
   end
 
   def print_local_functions
-    p self.functions.map(&:children)
+    p self.functions
   end
 
   def load_local_functions
@@ -215,7 +240,7 @@ class Gam
     new_position.y = (((position.y * 2)/@screen_height)*-2.0+1.0)
     return new_position
   end
-
+    
   def screen_to_world(vector, camera)
     vector.unproject(camera).sub(camera.position).normalize()
     distance = -camera.position.z / vector.z
