@@ -11,8 +11,8 @@ class FunctionWrapper
       .parse_file(file_path)
   end
 
-  def to_s
-    "Function Wrapper"
+  def test
+    "FunctionWrapper"
   end
 end
 
@@ -28,10 +28,6 @@ class Gam
     load_local_functions
 
     legacy_initialize
-  end
-
-  def test
-    return self.played_commands
   end
 
   def remap_functions
@@ -157,13 +153,8 @@ class Gam
       end
     end
 
-
     @renderer.window.on_resize do |width, height|
-      @screen_width, @screen_height = width, height
-      @renderer.width = width
-      @renderer.height = height
-      @camera.aspect = width.to_f / height.to_f
-      @camera.update_projection_matrix
+      on_resize(width, height)
     end
 
     raycaster = Mittsu::Raycaster.new
@@ -216,6 +207,14 @@ class Gam
     @renderer.window.on_scroll do |offset|
       @camera.position.z += offset.y
     end
+  end
+
+  def on_resize(width, height)
+    @screen_width, @screen_height = width, height
+    @renderer.width = width
+    @renderer.height = height
+    @camera.aspect = width.to_f / height.to_f
+    @camera.update_projection_matrix
   end
 
   def print_local_functions

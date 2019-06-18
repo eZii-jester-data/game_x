@@ -21,7 +21,7 @@ module SystemTests
 
         sleep 1
 
-        @output = drb_interface.played_commands.last.inspect
+        @output = drb_interface.played_commands.last.test
       end
 
       assert_match "FunctionWrapper", @output

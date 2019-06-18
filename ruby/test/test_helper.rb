@@ -16,15 +16,23 @@ module SystemTests
     end
 
     def send_keypress_to_gam_window(key)
+      apple_script("keystroke \"#{key}\"")
+    end
+
+    def drag_mouse_from_to_in_gam_window(from, to)
+      apple_script("set position of window 1 to {0, 0}")
+    end
+
+    def apple_script(script)
       if OS.mac?
         `osascript -e 'tell application "System Events" to tell (every process whose unix id is #{@gam_pid})
           set frontmost to true
           
-          keystroke "#{key}"
+          #{script}
         end tell'`
       end
     end
-
+    
     def open_gam_window(&block)
       outer_self = self
       Open3.popen3("ruby runnable.rb") do |stdin, stdout, stderr, thread|
