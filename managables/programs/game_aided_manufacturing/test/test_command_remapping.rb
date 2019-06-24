@@ -21,10 +21,10 @@ module SystemTests
 
         sleep 1
 
-        @output = drb_interface.played_commands.last.test
+        @output = drb_interface.played_commands.last.command_class_name
       end
 
-      assert_match "FunctionWrapper", @output
+      assert_match "SelectionCube", @output
     end
   end
 end

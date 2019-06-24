@@ -15,6 +15,7 @@ module SystemTests
     end
 
     def get_2_last_created_cubes_volume(drb_interface)
+      puts drb_interface.cubes.length
       return [50, 20]
     end
   end

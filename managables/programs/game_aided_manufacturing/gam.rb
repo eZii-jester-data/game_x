@@ -9,10 +9,35 @@ class FunctionWrapper
     @file_path = file_path
     @abstract_syntax_tree = RubyVM::AbstractSyntaxTree
       .parse_file(file_path)
+
+    get_command_class_name
   end
 
-  def test
-    "FunctionWrapper"
+  def get_command_class_name
+    # if class is deeper than first level, let's invent Enumerable#recursive_find
+    @command_class_node = @abstract_syntax_tree.children.find do |child|
+      child.class == RubyVM::AbstractSyntaxTree::Node && child.type == :CLASS
+    end
+
+    @command_class_name = @command_class_node
+      .children
+      .first
+      .pretty_print_inspect
+      .match(/:(\w+)\)\Z/)[1]
+  end
+
+  def new_command_instance
+    load(@file_path)
+
+    command_instance = const_get(@command_class_name).new
+
+    binding.remote_pry
+
+    return command_instance
+  end
+
+  def command_class_name
+    @command_class_name
   end
 end
 
@@ -20,6 +45,10 @@ class Gam
   SELECTED_CUBE_COLOR = 0xf4e842
   CUBES = []
   attr_accessor :functions, :key_map, :played_commands
+
+  def cubes
+    CUBES
+  end
 
   def initialize
     self.functions = []
@@ -30,21 +59,14 @@ class Gam
     legacy_initialize
   end
 
-  def remap_functions
-    print_local_functions
-
-    p "Enter index of unmapped function:" 
-    index_of_unmapped_function = gets.to_i
-    p "Enter key to map function to:"
-    keyboard_key = gets
-
-    keyboard_key.chomp!
-
-    self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
-  end
-  
   def execute_command(command_wrapper)
-    played_commands.push(command_wrapper)
+    played_commands.push(command_wrapper.new_command_instance)
+  end
+
+  def active_command(&block)
+    if played_commands.any? && played_commands.last.active?
+      block.call(played_commands.last)
+    end
   end
 
   def legacy_initialize
@@ -163,6 +185,10 @@ class Gam
 
     previously_selected_cube_color_1 = nil
     @renderer.window.on_mouse_button_pressed do |button, position|
+      active_command do |command|
+        command.mouse_down(position)
+      end
+
       normalized = normalize_2d_click(position)
       raycaster.set_from_camera(normalized, @camera)
       object_being_moved_by_mouse = raycaster
@@ -189,6 +215,10 @@ class Gam
     end
 
     @renderer.window.on_mouse_button_released do |button, position|
+      active_command do |command|
+        command.mouse_up(position)
+      end
+
       unless object_being_moved_by_mouse.nil?
         object_been_moved_by_mouse = object_being_moved_by_mouse
         object_being_moved_by_mouse = nil
@@ -248,6 +278,21 @@ class Gam
 
     click_to_world = screen_to_world(normalized_3d, @camera)
   end
+
+
+  def remap_functions
+    print_local_functions
+
+    p "Enter index of unmapped function:" 
+    index_of_unmapped_function = gets.to_i
+    p "Enter key to map function to:"
+    keyboard_key = gets
+
+    keyboard_key.chomp!
+
+    self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
+  end
+  
 
   def start
     @renderer.window.run do
