@@ -26,6 +26,21 @@ module SystemTests
       cliclick_drag_end(*to) 
     end
 
+    def scroll_out_in_gam_window(factor)
+      <<~JAVA
+        import java.awt.Robot;
+        import java.awt.event.InputEvent;
+
+        public class Main {
+          public static void main(String[] args) throws Exception {
+            Robot robot = new Robot();    
+            robot.mouseWheel(-100);
+          }
+        }
+      JAVA
+ 
+    end
+
     def cliclick_drag_start(x,y)
       `cliclick dd:#{x},#{y}`
     end
@@ -47,6 +62,17 @@ module SystemTests
     def open_gam_window(&block)
       outer_self = self
       Open3.popen3("ruby runnable.rb") do |stdin, stdout, stderr, thread|
+        Thread.new {
+          open('/var/log/gam.stderr', 'a') { |f|
+            begin
+              while line = stderr.gets
+                f << line
+              end
+            rescue IOError
+            end
+          }
+        }
+
         @gam_pid = thread.pid
         sleep 2
 

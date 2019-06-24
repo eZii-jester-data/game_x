@@ -8,7 +8,7 @@ module SystemTests
 
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
 
-        #scroll_out(0.5)
+        scroll_out_in_gam_window(0.5)
 
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
 

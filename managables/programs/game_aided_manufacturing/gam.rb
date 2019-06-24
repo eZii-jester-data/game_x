@@ -1,5 +1,5 @@
 require 'mittsu'
-require_relative 'cube.rb/base.rb'
+require_relative 'shapes/cube.rb'
 require 'pry-remote'
 require 'ast'
 
@@ -163,8 +163,6 @@ class Gam
 
     previously_selected_cube_color_1 = nil
     @renderer.window.on_mouse_button_pressed do |button, position|
-      mouse_button_pressed_handlers(button,  position)
-
       normalized = normalize_2d_click(position)
       raycaster.set_from_camera(normalized, @camera)
       object_being_moved_by_mouse = raycaster
