@@ -27,18 +27,10 @@ module SystemTests
     end
 
     def scroll_out_in_gam_window(factor)
-      <<~JAVA
-        import java.awt.Robot;
-        import java.awt.event.InputEvent;
-
-        public class Main {
-          public static void main(String[] args) throws Exception {
-            Robot robot = new Robot();    
-            robot.mouseWheel(-100);
-          }
-        }
-      JAVA
- 
+      path = File.expand_path(File.join(File.dirname(__FILE__), 'java-robot'))
+      Dir.chdir(path) do
+        `java MouseWheel`
+      end
     end
 
     def cliclick_drag_start(x,y)
