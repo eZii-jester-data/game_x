@@ -1,0 +1,3 @@
+[submodule "ruby/error_web_app/the_construct"]
+	path = ruby/error_web_app/the_construct
+	url = https://github.com/lazaronixon/the_construct.git

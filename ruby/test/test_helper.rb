@@ -21,6 +21,17 @@ module SystemTests
 
     def drag_mouse_from_to_in_gam_window(from, to)
       apple_script("set position of window 1 to {0, 0}")
+
+      cliclick_drag_start(*from)
+      cliclick_drag_end(*to) 
+    end
+
+    def cliclick_drag_start(x,y)
+      `cliclick dd:#{x},#{y}`
+    end
+
+    def cliclick_drag_end(x,y)
+      `cliclick du:#{x},#{y}`
     end
 
     def apple_script(script)
