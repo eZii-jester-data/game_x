@@ -19,9 +19,13 @@ module SystemTests
 
         send_keypress_to_gam_window("z")
 
+        puts "test"
+
         sleep 1
 
-        @output = drb_interface.played_commands.last.command_class_name
+        byebug
+
+        @output = drb_interface.played_commands.last.class.name
       end
 
       assert_match "SelectionCube", @output

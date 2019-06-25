@@ -3,6 +3,23 @@ require_relative 'shapes/cube.rb'
 require 'pry-remote'
 require 'ast'
 
+
+class PlayedCommands
+  attr_accessor :played_commands
+
+  def initialize
+    self.played_commands = []
+  end
+
+  def test
+    "Hello from played commands"
+  end
+
+  def method_missing(method_name, *args, &block)
+    self.played_commands.public_send(method_name, *args, &block)
+  end
+end
+
 class FunctionWrapper
   attr_accessor :function_class, :file_path
   def initialize(file_path)
@@ -29,9 +46,8 @@ class FunctionWrapper
   def new_command_instance
     load(@file_path)
 
-    command_instance = const_get(@command_class_name).new
-
-    binding.remote_pry
+    # SEC-TODO: fix eval, especially when considering downloadable functions
+    command_instance = eval(@command_class_name).new
 
     return command_instance
   end
@@ -53,7 +69,7 @@ class Gam
   def initialize
     self.functions = []
     self.key_map = {}
-    self.played_commands = []
+    self.played_commands = PlayedCommands.new
     load_local_functions
 
     legacy_initialize
