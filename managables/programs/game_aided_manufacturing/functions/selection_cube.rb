@@ -12,8 +12,12 @@ class SelectionCube
 
     def finish
         @active = false
+
+        difference_vector = @second_point.sub(@first_point)
+        size_vector = Mittsu::Vector3.new(difference_vector.x.abs, difference_vector.y.abs, difference_vector.z.abs)
+
         
-        @selection_cube = Cube.new(size_vector: (@second_point - @first_point).abs)
+        @selection_cube = Cube.new(size_vector: size_vector)
         @selection_cube.position = @first_point
         @gam_main_instance.scene.add(@selection_cube.mittsu_object)
     end
