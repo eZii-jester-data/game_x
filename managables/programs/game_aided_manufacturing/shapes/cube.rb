@@ -1,7 +1,7 @@
 class Cube
   attr_accessor :color, :mittsu_object
 
-  def initialize(color: 0x0000ff, size_vector: [1.0, 1.0, 1.0])
+  def initialize(color: 0x0000ff, size_vector:  [1.0, 1.0, 1.0])
     ::Gam::CUBES.push(self)
     self.color = color
     self.create_mittsu_object

@@ -1,8 +1,9 @@
-require '../shapes/cube'
+require_relative '../shapes/cube'
 
 class SelectionCube
-    def initialize
+    def initialize(gam_main_instance)
         @active = true
+        @gam_main_instance = gam_main_instance
     end
 
     def active?
@@ -14,6 +15,7 @@ class SelectionCube
         
         @selection_cube = Cube.new(size_vector: (@second_point - @first_point).abs)
         @selection_cube.position = @first_point
+        @gam_main_instance.scene.add(@selection_cube.mittsu_object)
     end
 
     def mouse_down(vector)

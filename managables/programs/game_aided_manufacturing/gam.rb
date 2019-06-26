@@ -3,6 +3,33 @@ require_relative 'shapes/cube.rb'
 require 'pry-remote'
 require 'ast'
 
+# Monkey patching Object like it's the golden old days
+
+class Object
+  def recursive_find(method_name, &find_condition_block)
+    if find_condition_block.call(self)
+      return self
+    end
+
+    if self.respond_to?(method_name)
+      enumerable = self.public_send(method_name)
+    elsif self.respond_to?(:each)
+      enumerable = self.each
+    else
+      return nil
+    end
+
+    enumerable.each do |item|
+      result = item.recursive_find(method_name, &find_condition_block)
+
+      if not result.nil?
+        return result
+      end
+    end
+
+    return nil
+  end
+end
 
 class PlayedCommands
   def initialize
@@ -38,7 +65,7 @@ class FunctionWrapper
 
   def get_command_class_name
     # if class is deeper than first level, let's invent Enumerable#recursive_find
-    @command_class_node = @abstract_syntax_tree.children.find do |child|
+    @command_class_node = @abstract_syntax_tree.recursive_find(:children) do |child|
       child.class == RubyVM::AbstractSyntaxTree::Node && child.type == :CLASS
     end
 
@@ -49,11 +76,11 @@ class FunctionWrapper
       .match(/:(\w+)\)\Z/)[1]
   end
 
-  def new_command_instance
+  def new_command_instance(gam_main_instance)
     load(@file_path)
 
     # SEC-TODO: fix eval, especially when considering downloadable functions
-    command_instance = eval(@command_class_name).new
+    command_instance = eval(@command_class_name).new(gam_main_instance)
 
     return command_instance
   end
@@ -68,7 +95,7 @@ class Gam
 
   # TODO: cubes array needds to be eliminated
   CUBES = []
-  attr_accessor :functions, :key_map
+  attr_accessor :functions, :key_map, :scene
 
   def cubes
     CUBES
@@ -88,7 +115,7 @@ class Gam
   end
 
   def execute_command(command_wrapper)
-    played_commands.push(command_wrapper.new_command_instance)
+    played_commands.push(command_wrapper.new_command_instance(self))
   end
 
   def active_command(&block)
