@@ -1,5 +1,6 @@
 require "minitest/autorun"
-
+require_relative '../gam'
+require_relative '../functions/selection_cube'
 require 'os'
 require 'open3'
 require 'drb/drb'

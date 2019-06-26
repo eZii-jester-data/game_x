@@ -5,18 +5,24 @@ require 'ast'
 
 
 class PlayedCommands
-  attr_accessor :played_commands
-
   def initialize
-    self.played_commands = []
+    @played_commands = []
   end
 
-  def test
-    "Hello from played commands"
+  def played_commands
+    @played_commands
   end
 
-  def method_missing(method_name, *args, &block)
-    self.played_commands.public_send(method_name, *args, &block)
+  def any?
+    @played_commands.any?
+  end
+
+  def last
+    @played_commands.last
+  end
+
+  def push(command)
+    @played_commands.push(command)
   end
 end
 
@@ -59,8 +65,10 @@ end
 
 class Gam
   SELECTED_CUBE_COLOR = 0xf4e842
+
+  # TODO: cubes array needds to be eliminated
   CUBES = []
-  attr_accessor :functions, :key_map, :played_commands
+  attr_accessor :functions, :key_map
 
   def cubes
     CUBES
@@ -69,10 +77,14 @@ class Gam
   def initialize
     self.functions = []
     self.key_map = {}
-    self.played_commands = PlayedCommands.new
+    @played_commands = PlayedCommands.new
     load_local_functions
 
     legacy_initialize
+  end
+
+  def played_commands
+    @played_commands
   end
 
   def execute_command(command_wrapper)
@@ -201,8 +213,10 @@ class Gam
 
     previously_selected_cube_color_1 = nil
     @renderer.window.on_mouse_button_pressed do |button, position|
+      click_to_world_var = click_to_world(position)
+
       active_command do |command|
-        command.mouse_down(position)
+        command.mouse_down(click_to_world_var)
       end
 
       normalized = normalize_2d_click(position)
@@ -231,15 +245,16 @@ class Gam
     end
 
     @renderer.window.on_mouse_button_released do |button, position|
+      click_to_world_var = click_to_world(position)
+
       active_command do |command|
-        command.mouse_up(position)
+        command.mouse_up(click_to_world_var)
       end
 
       unless object_being_moved_by_mouse.nil?
         object_been_moved_by_mouse = object_being_moved_by_mouse
         object_being_moved_by_mouse = nil
         
-        click_to_world_var = click_to_world(position)
 
         object_been_moved_by_mouse.position.x = click_to_world_var.x
         object_been_moved_by_mouse.position.y = click_to_world_var.y
@@ -289,12 +304,11 @@ class Gam
     normalized_3d = Mittsu::Vector3.new(
       normalized.x,
       normalized.y,
-      object_been_moved_by_mouse.position.z
+      0 # object_been_moved_by_mouse.position.z
     )
 
     click_to_world = screen_to_world(normalized_3d, @camera)
   end
-
 
   def remap_functions
     print_local_functions
@@ -308,7 +322,6 @@ class Gam
 
     self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
   end
-  
 
   def start
     @renderer.window.run do

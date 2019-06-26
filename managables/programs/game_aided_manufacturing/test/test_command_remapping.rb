@@ -19,11 +19,7 @@ module SystemTests
 
         send_keypress_to_gam_window("z")
 
-        puts "test"
-
         sleep 1
-
-        byebug
 
         @output = drb_interface.played_commands.last.class.name
       end
