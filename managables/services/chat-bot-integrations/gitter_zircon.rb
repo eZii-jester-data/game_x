@@ -29,7 +29,7 @@ def start
       client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
     end
 
-    if message.body.to_s =~ /List 10 most pushed to Github Repos of LemonAndroid/i
+    if message.body.to_s =~ /List 10 most recently pushed to Github Repos of LemonAndroid/i
       texts = ten_most_pushed_to_github_repos
       texts.each do |text|
         client.privmsg("qanda-api/Lobby", text)
@@ -51,6 +51,19 @@ def start
         client.privmsg("qanda-api/Lobby", text)
       end
     end
+
+    if message.body.to_s =~ /@LemonAndroid cd ([^\s]+)/i
+      path = nil
+      Dir.chdir(current_repo_dir) do
+        path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
+      end
+      texts = execute_bash_in_currently_selected_project("ls #{path}")
+
+      client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Listing directory `#{path}`"))
+      texts.each do |text|
+        client.privmsg("qanda-api/Lobby", text)
+      end
+    end
   end
 
   client.run!
@@ -58,6 +71,10 @@ end
 
 def execute_bash_in_currently_selected_project(hopefully_bash_command)
   if currently_selected_project_exists_locally?
+    Dir.chdir(current_repo_dir) do
+      output = `#{hopefully_bash_command}`
+      whitespace_to_unicode_array(output.split("\n"))
+    end
   else
     return whitespace_to_unicode_array(
       [
@@ -68,8 +85,12 @@ def execute_bash_in_currently_selected_project(hopefully_bash_command)
   end
 end
 
+def current_repo_dir
+ File.expand_path("~/gam-git-repos/#{@currently_selected_project}")
+end
+
 def currently_selected_project_exists_locally?
-  system("stat ~/gam-git-repos/#{@currently_selected_project}")
+  system("stat #{current_repo_dir}")
 end
 
 def ten_most_pushed_to_github_repos
