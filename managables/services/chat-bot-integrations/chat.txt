@@ -1,0 +1,46 @@
+
+Gitter
+Version:
+Created
+irc.gitter.im
+CHANTYPES=#
+- Message of the Day -
+- Welcome To Gitter IRC!
+- Info at https://irc.gitter.im
+- Code at https://gitlab.com/gitlab-org/gitter/irc-bridge
+End of /MOTD command.
+
+#qanda-api/Lobby
+*
+#qanda-api/Lobby
+test
+ahh wonderful
+wait, is LemonAndroid the bot?
+
+holy
+yes
+:D
+DUDE THATS DOPE AF
+_the robot is going to take over ur identity and ur gonna be FUCKED_
+it's really easy, i used zircon https://github.com/r7kamura/zircon
+
+:D
+thats pretty dope
+gitter isnt irc tho 
+its just
+an app
+right
+
+idk diff between irc and other chat programs 
+gitter is exposing an irc interface
+irc.gitter.im
+ohh 
+
+so is the robot using that?
+yes
+and its just outputting responses in gitter?
+yup
+fuck so ur interfacing w the bot thru irc.gitter.im
+
+yes
+i'll show you the code

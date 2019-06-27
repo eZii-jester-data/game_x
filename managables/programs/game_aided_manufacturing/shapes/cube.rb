@@ -2,10 +2,16 @@ class Cube
   attr_accessor :color, :mittsu_object, :size_vector
 
   def initialize(color: 0x0000ff, size_vector:  Mittsu::Vector3.new(1.0, 1.0, 1.0))
-    ::Gam::CUBES.push(self)
+    # value assignment (phase 1)
+
     self.color = color
-    self.create_mittsu_object
     self.size_vector = size_vector
+
+    # computing based on values (phase 2)
+    self.create_mittsu_object
+
+    # event distribution (phase 3)
+    ::Gam::CUBES.push(self)
   end
 
   def create_mittsu_object

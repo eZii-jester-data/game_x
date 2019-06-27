@@ -14,7 +14,9 @@ class SelectionCube
         @active = false
 
         difference_vector = @second_point.sub(@first_point)
-        size_vector = Mittsu::Vector3.new(difference_vector.x.abs, difference_vector.y.abs, difference_vector.z.abs)
+
+        z_size = 2 # unsure how to tackle z size for now, so i'll set it to a default 2 until i found a better solution, then it would be `difference_vector.z.abs`
+        size_vector = Mittsu::Vector3.new(difference_vector.x.abs, difference_vector.y.abs, z_size)
 
         
         @selection_cube = Cube.new(size_vector: size_vector)
