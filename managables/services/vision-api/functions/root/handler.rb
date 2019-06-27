@@ -1,8 +1,21 @@
+require 'tempfile'
+require 'json'
+
+
 def handler event
-  response = {
-    'message' => "Welcome to FaaStRuby Local! Edit the function 'root' to customize this response."
-  }
-  render json: response
+	t = Tempfile.new(['google', '.json'])
+
+	google_json_contents = JSON.parse(event.context)["google_json_contents"]
+
+	t.write(google_json_contents)
+
+	ENV['GOOGLE_APPLICATION_CREDENTIALS'] = t.path
+
+
+	response = {
+		'message' => annotate_image
+	}
+	render json: response
 end
 
 

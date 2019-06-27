@@ -64,6 +64,19 @@ def start
         client.privmsg("qanda-api/Lobby", text)
       end
     end
+
+    if message.body.to_s =~ /@LemonAndroid cat ([^\s]+)/i
+      path = nil
+      Dir.chdir(current_repo_dir) do
+        path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
+      end
+      texts = execute_bash_in_currently_selected_project("cat #{path}")
+
+      client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Showing file `#{path}`"))
+      texts.each do |text|
+        client.privmsg("qanda-api/Lobby", text)
+      end
+    end
   end
 
   client.run!
