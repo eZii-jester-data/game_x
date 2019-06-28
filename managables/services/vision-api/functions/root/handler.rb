@@ -6,28 +6,28 @@ require "base64"
 
 
 def handler event
-	t = Tempfile.new(['google', '.json'])
+    t = Tempfile.new(['google', '.json'])
 
-	google_json_contents = JSON.parse(event.context)["google_json_contents"]
+    google_json_contents = JSON.parse(event.context)["google_json_contents"]
 
 
-	File.open(t.path, 'w') do |file|
-		file.write(google_json_contents)
-	end
+    File.open(t.path, 'w') do |file|
+        file.write(google_json_contents)
+    end
 
-	ENV['GOOGLE_APPLICATION_CREDENTIALS'] = t.path
+    ENV['GOOGLE_APPLICATION_CREDENTIALS'] = t.path
 
-	base_64_image = JSON.parse(event.body)["data"].gsub("data:image/jpeg;base64,", '')
+    base_64_image = JSON.parse(event.body)["data"].gsub("data:image/jpeg;base64,", '')
 
-	image_path = base_64_image_to_local_tempfile_path(base_64_image)
+    image = base_64_image_to_local_tempfile(base_64_image)
 
-	result = ocr_document_image(image_path)
+    result = ocr_document_image(image)
 
-	response = {
-		'message' => result
-	}
+    response = {
+        'message' => result
+    }
 
-	render json: response
+    render json: response
 end
 
 def ocr_document_image(image_path)
@@ -45,12 +45,12 @@ def ocr_document_image(image_path)
 	return text
 end
 
-def base_64_image_to_local_tempfile_path(base_64_image)
+def base_64_image_to_local_tempfile(base_64_image)
 	t = Tempfile.new(['image', '.jpg'])
 
 	base_64_decoded_image = Base64.decode64(base_64_image)
 
 	File.binwrite(t.path, base_64_decoded_image)
 
-	return t.path
+	return t
 end

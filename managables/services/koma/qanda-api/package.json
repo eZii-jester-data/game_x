@@ -1,0 +1,20 @@
+{
+  "name": "koma/qanda-api",
+  "description": "qanda-app.com API",
+  "version": "0.0.17",
+  "author": "koma",
+  "stdlib": {
+    "name": "koma/qanda-api",
+    "publish": true,
+    "timeout": 10000
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "underscore": "^1.9.1",
+    "compromise": "^11.9.1",
+    "sanitize-html": "^1.18.2",
+    "decode-html": "^2.0.0",
+    "lib": "^3.0.2",
+    "word2vec-pure-js": "^0.0.2"
+  }
+}
