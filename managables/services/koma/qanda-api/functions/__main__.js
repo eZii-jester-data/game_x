@@ -12,7 +12,7 @@ module.exports = async (language = "en", source="wikipedia", context) => {
   let blackedOutDict = await lib[`${context.service.identifier}.black-out-random-word`]({sentence: response.rs.result});
   let randomWordsFromArticle = await lib[`${context.service.identifier}.random-words`]({
     text: response.rs.result,
-    numberOfWords: 4,
+    numberOfWords: 3,
     similarTo: blackedOutDict.termNormal
   });
 
@@ -36,17 +36,18 @@ module.exports = async (language = "en", source="wikipedia", context) => {
 
 async function randomSentenceErrorProne(language, source, context) {
   var text;
+  var page;
   if (source === 'wikipedia') {
-    let page = await lib[`${context.service.identifier}.random-wikipedia-page`]({language: language});
+    page = await lib[`${context.service.identifier}.random-wikipedia-page`]({language: language});
     text = page.text;
   } else {
-    text = "This could be coming from airtable."
+    text = "They were named one of the 10 most innovative companies in education by Fast Company (magazine) in 2013."
   }
   
   let randomSentence = await lib[`${context.service.identifier}.random-sentence`]({text: text});
 
   if(randomSentence.error === true) {
-    return randomSentenceErrorProne(language, context);
+    return randomSentenceErrorProne(language, source, context);
   } else {
     return {p: page, rs: randomSentence};
   }

@@ -37,5 +37,5 @@ module.exports = async function(word = "") {
 //   let wordUsedCount = parseInt(wordUsedCountQueryResult[0][2]);
 // 
 //   return (wordUsedCount < (lessUsedWordCount + 10));
-return word.length > 2;
+return word.length > 5;
 }
