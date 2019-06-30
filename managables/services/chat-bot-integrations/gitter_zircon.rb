@@ -52,6 +52,13 @@ def start
       end
     end
 
+    if message.body.to_s =~ /@LemonAndroid ls/i
+      texts = execute_bash_in_currently_selected_project('ls')
+      texts.each do |text|
+        client.privmsg("qanda-api/Lobby", text)
+      end
+    end
+
     if message.body.to_s =~ /@LemonAndroid cd ([^\s]+)/i
       path = nil
       Dir.chdir(current_repo_dir) do
@@ -80,6 +87,25 @@ def start
   end
 
   client.run!
+end
+
+def all_unix_process_ids(unix_id)
+  [*execute_bash_in_currently_selected_project('pgrep -P 88115').split("\n"), unix_id]
+end
+
+
+def apple_script_window_bounds(unix_pid)
+  run_osa_script(
+      <<~OSA_SCRIPT
+      tell application "System Events" to tell (every process whose unix id is #{unix_pid})
+        get {position, size} of every window
+      end tell
+    OSA_SCRIPT
+  )
+end
+
+def run_osa_script(script)
+  `osascript -e '#{script}''`
 end
 
 def execute_bash_in_currently_selected_project(hopefully_bash_command)
