@@ -1,0 +1,15 @@
+
+Gitter
+Version:
+Created
+irc.gitter.im
+CHANTYPES=#
+- Message of the Day -
+- Welcome To Gitter IRC!
+- Info at https://irc.gitter.im
+- Code at https://gitlab.com/gitlab-org/gitter/irc-bridge
+End of /MOTD command.
+
+#qanda-api/Lobby
+*
+#qanda-api/Lobby

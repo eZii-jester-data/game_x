@@ -4,7 +4,7 @@ require 'byebug'
 require 'json'
 require 'date'
 
-LOG_FILE = File.open('chat.txt', 'w')
+#LOG_FILE = File.open('chat.txt', 'w')
 
 @currently_selected_project = "lemonandroid/gam"
 
@@ -23,7 +23,7 @@ def start
 
   client.on_message do |message|
     puts ">>> #{message.from}: #{message.body}".colorize(colors.sample)
-    LOG_FILE.write(message.body.to_s + "\n")
+    #LOG_FILE.write(message.body.to_s + "\n")
 
     if message.body.to_s =~ /@LemonAndroid List github repos/i
       client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
@@ -169,4 +169,4 @@ end
 
 start()
 
-LOG_FILE.close
+#LOG_FILE.close
