@@ -111,8 +111,10 @@ end
 def execute_bash_in_currently_selected_project(hopefully_bash_command)
   if currently_selected_project_exists_locally?
     Dir.chdir(current_repo_dir) do
-      output = `#{hopefully_bash_command}`
-      whitespace_to_unicode_array(output.split("\n"))
+      Bundler.with_clean_env do
+        output = `#{hopefully_bash_command}`
+        whitespace_to_unicode_array(output.split("\n"))
+      end
     end
   else
     return whitespace_to_unicode_array(
