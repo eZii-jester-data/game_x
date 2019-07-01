@@ -34,6 +34,7 @@ async function randomSentenceErrorProne(language, source, context) {
     page = await lib[`${context.service.identifier}.random-wikipedia-page`]({language: language});
     text = page.text;
   } else {
+    page = {title: "This will be questions from ocrd images"}
     text = "They were named one of the 10 most innovative companies in education by Fast Company (magazine) in 2013."
   }
   

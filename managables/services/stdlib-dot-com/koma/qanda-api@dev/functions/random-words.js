@@ -11,11 +11,8 @@ module.exports = async (numberOfWords = 3, similarTo = "") => {
   let relatedTerms = _.shuffle(w2v.getSimilarWords(similarTo, numberOfWords ** 2));  
 
   let terms = nlp(relatedTerms.join(" ")).out("terms");
-  
-  if(uniq === true) {
-    terms = _.uniq(terms, 'normal');
-  }
 
+  terms = _.uniq(terms, 'normal');
 
   terms = _.filter(terms, function(term) {
 	  return _.contains(term.tags, 'Noun');
@@ -25,7 +22,7 @@ module.exports = async (numberOfWords = 3, similarTo = "") => {
   for(i=0;i<numberOfWords;i++) {
       let randIndex = Math.floor(Math.random()*terms.length);
       relatedTermsEnrichedByCompromiseNlp.push(terms[randIndex]);
-      delete terms[randIndex];
+      terms.splice(randIndex, 1);
   }  
 
 
