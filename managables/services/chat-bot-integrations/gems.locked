@@ -1,9 +1,14 @@
+GIT
+  remote: https://github.com/icetiger-tec/zircon.git
+  revision: b40496d72d8fa8590375a85c5684deb45c3fcd70
+  specs:
+    zircon (0.0.8)
+
 GEM
   remote: https://rubygems.org/
   specs:
     byebug (11.0.1)
     colorize (0.8.1)
-    zircon (0.0.8)
 
 PLATFORMS
   ruby
@@ -11,7 +16,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   colorize
-  zircon
+  zircon!
 
 BUNDLED WITH
    2.0.2

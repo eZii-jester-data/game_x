@@ -1,1 +1,3 @@
-ruby managament_interface/runnable.rb
+ls
+cd ./managament_interface
+./management_interface
