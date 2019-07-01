@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    byebug (11.0.1)
+    colorize (0.8.1)
+    zircon (0.0.8)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  byebug
+  colorize
+  zircon
+
+BUNDLED WITH
+   2.0.2

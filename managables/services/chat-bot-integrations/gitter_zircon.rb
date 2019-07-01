@@ -3,6 +3,7 @@ require 'colorize'
 require 'byebug'
 require 'json'
 require 'date'
+require 'timeout'
 
 
 class GitterDumbDevBot
@@ -115,7 +116,6 @@ class GitterDumbDevBot
         Bundler.with_clean_env do
           output = `#{hopefully_bash_command}`
           texts_array = whitespace_to_unicode_array(output.split("\n"))
-
           texts_array + screen_captures_of_visual_processes($?.pid)
         end
       end
