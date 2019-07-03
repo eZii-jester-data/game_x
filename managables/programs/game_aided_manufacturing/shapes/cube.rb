@@ -1,3 +1,5 @@
+require_relative '../lib/mittsu_monkeypatches/box_geometry.rb'
+
 class Cube
   attr_accessor :color, :mittsu_object, :size_vector
 
