@@ -4,7 +4,7 @@ require 'byebug'
 require 'json'
 require 'date'
 require 'timeout'
-
+require 'gyazo'
 
 class GitterDumbDevBot
   def initialize
@@ -26,7 +26,6 @@ class GitterDumbDevBot
 
     client.on_message do |message|
       puts ">>> #{message.from}: #{message.body}".colorize(colors.sample)
-      #LOG_FILE.write(message.body.to_s + "\n")
 
       if message.body.to_s =~ /@LemonAndroid List github repos/i
         client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
@@ -51,7 +50,7 @@ class GitterDumbDevBot
       if message.body.to_s =~ /@LemonAndroid show `(.*)`/i
         texts = execute_bash_in_currently_selected_project($1)
         texts.each do |text|
-          client.privmsg("qanda-api/Lobby", text)
+          client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
         end
       end
 
@@ -93,30 +92,48 @@ class GitterDumbDevBot
   end
   
   def all_unix_process_ids(unix_id)
-    [*(`pgrep -P #{unix_id}`.split("\n")), unix_id]
+    descendant_pids(unix_id) + [unix_id]
   end
 
-  def apple_script_window_bounds(unix_pid)
-    run_osa_script(
-        <<~OSA_SCRIPT
-        tell application "System Events" to tell (every process whose unix id is #{unix_pid})
-          get {position, size} of every window
-        end tell
-      OSA_SCRIPT
-    )
+  def descendant_pids(root_unix_pid)
+    child_unix_pids = `pgrep -P #{root_unix_pid}`.split("\n")
+    further_descendant_unix_pids = \
+      child_unix_pids.map { |unix_pid| descendant_pids(unix_pid) }.flatten
+
+    child_unix_pids + further_descendant_unix_pids
+  end
+
+  def apple_script_window_position_and_size(unix_pid)
+    <<~OSA_SCRIPT
+      tell application "System Events" to tell (every process whose unix id is #{unix_pid})
+        get {position, size} of every window
+      end tell
+    OSA_SCRIPT
+  end
+  
+  def get_window_position_and_size(unix_pid)
+    possibly_window_bounds = run_osa_script(apple_script_window_position_and_size(unix_pid))
+
+    if possibly_window_bounds =~ /\d/
+      possibly_window_bounds.scan(/\d+/).map(&:to_i)
+    else
+      return nil
+    end
   end
 
   def run_osa_script(script)
-    `osascript -e '#{script}''`
+    `osascript -e '#{script}'`
   end
 
   def execute_bash_in_currently_selected_project(hopefully_bash_command)
     if currently_selected_project_exists_locally?
       Dir.chdir(current_repo_dir) do
         Bundler.with_clean_env do
-          output = `#{hopefully_bash_command}`
-          texts_array = whitespace_to_unicode_array(output.split("\n"))
-          texts_array + screen_captures_of_visual_processes($?.pid)
+          pid = spawn(hopefully_bash_command)
+          Process.detach(pid)
+          texts_array = []
+          # texts_array = whitespace_to_unicode_array(output.split("\n"))
+          texts_array + screen_captures_of_visual_processes(pid)
         end
       end
     else
@@ -129,8 +146,22 @@ class GitterDumbDevBot
     end
   end
 
-  def screen_captures_of_visual_processes(unix_pid)
-    return [all_unix_process_ids(unix_pid).inspect]
+  def screen_captures_of_visual_processes(root_unix_pid)
+    sleep 5
+
+    unix_pids = all_unix_process_ids(root_unix_pid)
+    windows = unix_pids.map do |unix_pid|
+      get_window_position_and_size(unix_pid)
+    end.compact
+
+    windows.map do |position_and_size|
+      t = Tempfile.new(['screencapture-pid-', root_unix_pid.to_s, '.png'])
+      `screencapture -R #{position_and_size.join(',')} #{t.path}`
+
+      gyazo = Gyazo::Client.new access_token: 'b2893f18deff437b3abd45b6e4413e255fa563d8bd00d360429c37fe1aee560f'
+      res = gyazo.upload imagefile: t.path
+      res[:url]
+    end
   end
 
   def current_repo_dir
