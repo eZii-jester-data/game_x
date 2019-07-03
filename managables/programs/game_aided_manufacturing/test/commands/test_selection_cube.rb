@@ -1,4 +1,5 @@
 require_relative '../test_helper.rb'
+require 'byebug'
 
 module SystemTests
   class TestSelectionCube < AbstractSystemTest
@@ -7,6 +8,7 @@ module SystemTests
         drb_interface.execute_command(drb_interface.functions[1])
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
         scroll_out_in_gam_window(0.5)
+        sleep 1
         drb_interface.execute_command(drb_interface.functions[1])
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
         sleep 0.5
@@ -20,12 +22,10 @@ module SystemTests
       firstly_created_cube = drb_interface.cubes[0]
       secondly_created_cube = drb_interface.cubes[1]
 
-      byebug
+      firstly_created_cube_volume = firstly_created_cube.geometry.volume
+      secondly_created_cube_volume = secondly_created_cube.geometry.volume
 
-      firstly_created_cube_volume = firstly_created_cube.geometry.x * firstly_created_cube.geometry.y * firstly_created_cube.geometry.z
-      secondly_created_cube_volume = secondly_created_cube.geometry.x * secondly_created_cube.geometry.y * secondly_created_cube.geometry.z
-
-      return [firstly_created_cube, secondly_created_cube]
+      return [firstly_created_cube_volume, secondly_created_cube_volume]
     end
   end
 end

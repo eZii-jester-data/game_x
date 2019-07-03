@@ -28,10 +28,7 @@ module SystemTests
     end
 
     def scroll_out_in_gam_window(factor)
-      path = File.expand_path(File.join(File.dirname(__FILE__), 'java-robot'))
-      Dir.chdir(path) do
-        `java MouseWheel`
-      end
+      `cliclick sp:#{factor},0,0`
     end
 
     def cliclick_drag_start(x,y)

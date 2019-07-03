@@ -2,6 +2,7 @@ require 'mittsu'
 require_relative 'shapes/cube.rb'
 require 'pry-remote'
 require 'ast'
+require 'byebug'
 
 # Monkey patching Object like it's the golden old days
 
@@ -221,7 +222,8 @@ class Gam
       when GLFW_KEY_V
         @scene.add(plane)
       when GLFW_KEY_W
-        instance_exec(&console_function)
+        byebug
+        # instance_exec(&console_function)
       when GLFW_KEY_X
         print_local_functions
       when GLFW_KEY_Y
