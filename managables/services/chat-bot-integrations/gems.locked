@@ -19,6 +19,7 @@ GEM
       mime-types-data (~> 3.2015)
     mime-types-data (3.2019.0331)
     multipart-post (2.1.1)
+    open4 (1.3.4)
 
 PLATFORMS
   ruby
@@ -27,6 +28,7 @@ DEPENDENCIES
   byebug
   colorize
   gyazo
+  open4
   zircon!
 
 BUNDLED WITH

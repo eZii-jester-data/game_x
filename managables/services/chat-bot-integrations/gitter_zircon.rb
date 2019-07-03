@@ -5,6 +5,7 @@ require 'json'
 require 'date'
 require 'timeout'
 require 'gyazo'
+require 'open4'
 
 class GitterDumbDevBot
   def initialize
@@ -26,7 +27,7 @@ class GitterDumbDevBot
 
     client.on_message do |message|
       puts ">>> #{message.from}: #{message.body}".colorize(colors.sample)
-
+      
       if message.body.to_s =~ /@LemonAndroid List github repos/i
         client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
       end
@@ -47,7 +48,8 @@ class GitterDumbDevBot
         client.privmsg("qanda-api/Lobby", whitespace_to_unicode("currently selected project is #{@currently_selected_project}"))
       end
 
-      if message.body.to_s =~ /@LemonAndroid show `(.*)`/i
+      if message.body.to_s =~ /@LemonAndroid\s+show `(.*)`/i
+
         texts = execute_bash_in_currently_selected_project($1)
         texts.each do |text|
           client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
@@ -129,11 +131,12 @@ class GitterDumbDevBot
     if currently_selected_project_exists_locally?
       Dir.chdir(current_repo_dir) do
         Bundler.with_clean_env do
-          pid = spawn(hopefully_bash_command)
-          Process.detach(pid)
-          texts_array = []
-          # texts_array = whitespace_to_unicode_array(output.split("\n"))
-          texts_array + screen_captures_of_visual_processes(pid)
+          stdout = ''
+          process = Open4.bg(hopefully_bash_command, 0 => '', 1 => stdout, 2 => '')
+          sleep 1
+          
+          texts_array = whitespace_to_unicode_array(stdout.split("\n"))
+          texts_array + screen_captures_of_visual_processes(process.pid)
         end
       end
     else
@@ -147,7 +150,7 @@ class GitterDumbDevBot
   end
 
   def screen_captures_of_visual_processes(root_unix_pid)
-    sleep 5
+    sleep 3
 
     unix_pids = all_unix_process_ids(root_unix_pid)
     windows = unix_pids.map do |unix_pid|
