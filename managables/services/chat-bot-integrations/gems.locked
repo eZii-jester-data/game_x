@@ -9,6 +9,16 @@ GEM
   specs:
     byebug (11.0.1)
     colorize (0.8.1)
+    faraday (0.15.4)
+      multipart-post (>= 1.2, < 3)
+    gyazo (3.0.1)
+      faraday
+      mime-types
+      multipart-post
+    mime-types (3.2.2)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2019.0331)
+    multipart-post (2.1.1)
 
 PLATFORMS
   ruby
@@ -16,6 +26,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   colorize
+  gyazo
   zircon!
 
 BUNDLED WITH

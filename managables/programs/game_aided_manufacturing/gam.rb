@@ -130,9 +130,13 @@ class Gam
 
     @screen_width = 800
     @screen_height = 600
-    aspect = @screen_width.to_f / @screen_height.to_f
+    aspect = @screen_width.to_f / @screen_height
 
-    @renderer = Mittsu::OpenGLRenderer.new width: @screen_width, height: @screen_height, title: 'TOOLX'
+    @renderer = Mittsu::OpenGLRenderer.new(
+      width: @screen_width,
+      height: @screen_height,
+      title: 'TOOLX'
+    )
 
     @scene = Mittsu::Scene.new
 
@@ -151,7 +155,7 @@ class Gam
     console_function = -> {
       unless waiting_for_w_console_command
         waiting_for_w_console_command = true
-        puts "Enter ruby code that will be evaluated in the current session:"
+        puts 'Enter ruby code that will be evaluated in the current session:'
 
         user_input = gets
         puts "Running code u entered #{user_input}"
@@ -251,12 +255,12 @@ class Gam
       normalized = normalize_2d_click(position)
       raycaster.set_from_camera(normalized, @camera)
       object_being_moved_by_mouse = raycaster
-        .intersect_objects(CUBES)
-        .map \
-          do |intersected_object_and_meta_information|
-            intersected_object_and_meta_information[:object]
-          end
-        .first
+                                    .intersect_objects(CUBES)
+                                    .map \
+                                      do |intersected_object_and_meta_information|
+                                        intersected_object_and_meta_information[:object]
+                                      end
+                                    .first
 
       if object_being_moved_by_mouse
         previously_selected_cube_color_1 = object_being_moved_by_mouse.material.color
@@ -273,7 +277,7 @@ class Gam
       end
     end
 
-    @renderer.window.on_mouse_button_released do |button, position|
+    @renderer.window.on_mouse_button_released do |_button, position|
       click_to_world_var = click_to_world(position)
 
       active_command do |command|
@@ -283,7 +287,7 @@ class Gam
       unless object_being_moved_by_mouse.nil?
         object_been_moved_by_mouse = object_being_moved_by_mouse
         object_being_moved_by_mouse = nil
-        
+
 
         object_been_moved_by_mouse.position.x = click_to_world_var.x
         object_been_moved_by_mouse.position.y = click_to_world_var.y
@@ -298,10 +302,13 @@ class Gam
   end
 
   def on_resize(width, height)
-    @screen_width, @screen_height = width, height
+    @screen_width = width
+    @screen_height = height
+
     @renderer.width = width
     @renderer.height = height
-    @camera.aspect = width.to_f / height.to_f
+
+    @camera.aspect = width.to_f / height
     @camera.update_projection_matrix
   end
 
@@ -311,7 +318,7 @@ class Gam
 
   def load_local_functions
     Dir[File.dirname(__FILE__) + '/functions/*.rb'].each do |file_path|
-      self.functions.push(FunctionWrapper.new(file_path))
+      functions.push(FunctionWrapper.new(file_path))
     end
   end
 
@@ -319,11 +326,11 @@ class Gam
     new_position = Mittsu::Vector2.new
     new_position.x = (((position.x * 2)/@screen_width)*2.0-1.0)
     new_position.y = (((position.y * 2)/@screen_height)*-2.0+1.0)
-    return new_position
+    new_position
   end
-    
+
   def screen_to_world(vector, camera)
-    vector.unproject(camera).sub(camera.position).normalize()
+    vector.unproject(camera).sub(camera.position).normalize
     distance = -camera.position.z / vector.z
     vector.multiply_scalar(distance).add(camera.position)
   end
@@ -336,20 +343,21 @@ class Gam
       0 # object_been_moved_by_mouse.position.z
     )
 
-    click_to_world = screen_to_world(normalized_3d, @camera)
+    screen_to_world(normalized_3d, @camera)
   end
 
   def remap_functions
     print_local_functions
 
-    p "Enter index of unmapped function:" 
+    p 'Enter index of unmapped function:'
     index_of_unmapped_function = gets.to_i
-    p "Enter key to map function to:"
+
+    p 'Enter key to map function to:'
     keyboard_key = gets
 
     keyboard_key.chomp!
 
-    self.key_map[keyboard_key] = self.functions[index_of_unmapped_function]
+    key_map[keyboard_key] = functions[index_of_unmapped_function]
   end
 
   def start
