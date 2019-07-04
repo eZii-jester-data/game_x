@@ -1,3 +1,0 @@
-class RotatePlaneWithMouse
-  
-end

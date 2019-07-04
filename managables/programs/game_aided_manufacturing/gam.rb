@@ -96,7 +96,7 @@ class Gam
 
   # TODO: cubes array needds to be eliminated
   CUBES = []
-  attr_accessor :functions, :key_map, :scene
+  attr_accessor :functions, :key_map, :scene, :camera
 
   def cubes
     CUBES
@@ -246,7 +246,7 @@ class Gam
 
     previously_selected_cube_color_1 = nil
     @renderer.window.on_mouse_button_pressed do |button, position|
-      click_to_world_var = click_to_world(position)
+      click_to_world_var = mouse_position_to_3d_position(position)
 
       active_command do |command|
         command.mouse_down(click_to_world_var)
@@ -270,15 +270,20 @@ class Gam
 
 
     @renderer.window.on_mouse_move do |position|
+      click_to_world_var = mouse_position_to_3d_position(position)
+
+      active_command do |command|
+        command.mouse_move(click_to_world_var)
+      end
+
       unless object_being_moved_by_mouse.nil?
-        click_to_world_var = click_to_world(position)
         object_being_moved_by_mouse.position.x = click_to_world_var.x
         object_being_moved_by_mouse.position.y = click_to_world_var.y
       end
     end
 
     @renderer.window.on_mouse_button_released do |_button, position|
-      click_to_world_var = click_to_world(position)
+      click_to_world_var = mouse_position_to_3d_position(position)
 
       active_command do |command|
         command.mouse_up(click_to_world_var)
@@ -335,7 +340,7 @@ class Gam
     vector.multiply_scalar(distance).add(camera.position)
   end
 
-  def click_to_world(position)
+  def mouse_position_to_3d_position(position)
     normalized = normalize_2d_click(position)
     normalized_3d = Mittsu::Vector3.new(
       normalized.x,
