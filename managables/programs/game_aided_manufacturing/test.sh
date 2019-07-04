@@ -1,0 +1,1 @@
+bundle exec ruby ./test/commands/test_selection_cube.rb

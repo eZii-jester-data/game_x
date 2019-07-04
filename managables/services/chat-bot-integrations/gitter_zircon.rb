@@ -132,10 +132,12 @@ class GitterDumbDevBot
       Dir.chdir(current_repo_dir) do
         Bundler.with_clean_env do
           stdout = ''
-          process = Open4.bg(hopefully_bash_command, 0 => '', 1 => stdout, 2 => '')
+          stderr = ''
+          process = Open4.bg(hopefully_bash_command, 0 => '', 1 => stdout, 2 => stderr)
           sleep 1
           
           texts_array = whitespace_to_unicode_array(stdout.split("\n"))
+          texts_array += whitespace_to_unicode_array(stderr.split("\n"))
           texts_array + screen_captures_of_visual_processes(process.pid)
         end
       end
