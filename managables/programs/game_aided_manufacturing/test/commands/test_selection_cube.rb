@@ -7,7 +7,7 @@ module SystemTests
       open_gam_window do |console_stdin, console_stdout|
         drb_interface.execute_command(drb_interface.functions[1])
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
-        scroll_out_in_gam_window(0.5)
+        scroll_out_in_gam_window(-10)
         sleep 1
         drb_interface.execute_command(drb_interface.functions[1])
         drag_mouse_from_to_in_gam_window([100, 100], [150, 150])
