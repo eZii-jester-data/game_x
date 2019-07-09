@@ -152,7 +152,7 @@ class GitterDumbDevBot
   end
 
   def screen_captures_of_visual_processes(root_unix_pid)
-    sleep 3
+    sleep 8
 
     unix_pids = all_unix_process_ids(root_unix_pid)
     windows = unix_pids.map do |unix_pid|

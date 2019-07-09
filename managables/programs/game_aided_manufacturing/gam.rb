@@ -252,7 +252,7 @@ class Gam
         command.mouse_down(click_to_world_var)
       end
 
-      normalized = normalize_2d_click(position)
+      normalized = normalize_2d_screen_position(position)
       raycaster.set_from_camera(normalized, @camera)
       object_being_moved_by_mouse = raycaster
                                     .intersect_objects(CUBES)
@@ -327,7 +327,7 @@ class Gam
     end
   end
 
-  def normalize_2d_click(position)
+  def normalize_2d_screen_position(position)
     new_position = Mittsu::Vector2.new
     new_position.x = (((position.x * 2)/@screen_width)*2.0-1.0)
     new_position.y = (((position.y * 2)/@screen_height)*-2.0+1.0)
@@ -341,7 +341,7 @@ class Gam
   end
 
   def mouse_position_to_3d_position(position)
-    normalized = normalize_2d_click(position)
+    normalized = normalize_2d_screen_position(position)
     normalized_3d = Mittsu::Vector3.new(
       normalized.x,
       normalized.y,

@@ -7,9 +7,9 @@ const _ = require('underscore');
 * @returns {object}
 */
 module.exports = async (language = "en", source="wikipedia", context) => {
-  let response = await randomSentenceErrorProne(language, source, context);
+  let randomSentenceResponse = await randomSentenceErrorProne(language, source, context);
 
-  let blackedOutDict = await lib[`${context.service.identifier}.black-out-random-word`]({sentence: response.rs.result});
+  let blackedOutDict = await lib[`${context.service.identifier}.black-out-random-word`]({sentence: randomSentenceResponse.rs.result});
   let randomWordsFromArticle = await lib[`${context.service.identifier}.random-words`]({
     similarTo: blackedOutDict.termNormal
   });
@@ -24,7 +24,15 @@ module.exports = async (language = "en", source="wikipedia", context) => {
 
   choices = _.shuffle(choices);
 
-  return {articleTitle: response.p.title, wikipediaId: response.p.wikipediaId, sentence: blackedOutDict, choices: choices};
+  let response = {
+    articleTitle: randomSentenceResponse.p.title, 
+    wikipediaId: randomSentenceResponse.p.wikipediaId, 
+    sentence: blackedOutDict, 
+    choices: choices,
+    surroundingSentences: randomSentenceResponse.rs.surroundingSentences
+  };
+
+  return response;
 }
 
 async function randomSentenceErrorProne(language, source, context) {
