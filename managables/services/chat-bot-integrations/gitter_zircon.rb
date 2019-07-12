@@ -6,10 +6,12 @@ require 'date'
 require 'timeout'
 require 'gyazo'
 require 'open4'
+require 'brainz'
 
 class GitterDumbDevBot
   def initialize
     @currently_selected_project = "lemonandroid/gam"
+    @variables_for_chat_users = Hash.new
   end
 
   def start
@@ -27,7 +29,21 @@ class GitterDumbDevBot
 
     client.on_message do |message|
       puts ">>> #{message.from}: #{message.body}".colorize(colors.sample)
-      
+
+      if message.body.to_s =~ /hey/i
+        client.privmsg("qanda-api/Lobby", "hey")
+      end
+
+      if message.body.to_s =~ /chat-variable (\w*) (\w*)/i
+        @variables_for_chat_users[$1] = $2
+        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("variable #{$2} set to #{@variables_for_chat_users[$1]}"))
+      end
+
+      if message.body.to_s =~ /get-chat-variable (\w*)/i
+        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"))
+        client.privmsg("qanda-api/Lobby", whitespace_to_unicode(@variables_for_chat_users[$1]))
+      end
+
       if message.body.to_s =~ /@LemonAndroid List github repos/i
         client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
       end

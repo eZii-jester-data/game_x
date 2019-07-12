@@ -1,12 +1,17 @@
 const nlp = require('compromise');
 const _ = require('underscore');
-
+const lib = require('lib');
 
 /**
 * Get a random sentence from provided text. 
 * @returns {object}
 */
-module.exports = async (text = "") => {  
+module.exports = async (text = "", wikiPediaPageId=0, context) => {
+  if(wikiPediaPageId !== 0) {
+    page = await lib[`${context.service.identifier}.random-wikipedia-page`]({pageIds: [wikiPediaPageId]});
+    text = page.text;
+  }
+
   var sentencesDoc = nlp(text, {allowedTags: []}).sentences();
   
   sentences = sentencesDoc.list.map(ts => {

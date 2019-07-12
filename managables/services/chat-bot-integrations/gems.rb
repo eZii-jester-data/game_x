@@ -5,3 +5,5 @@ gem 'colorize'
 gem 'byebug'
 gem 'gyazo'
 gem 'open4'
+
+gem 'brainz'
