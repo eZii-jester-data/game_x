@@ -16,7 +16,7 @@ require 'sinatra'
 #   end
 # end
 
-WHITELIST = ["show `say i am so easy you can do whatever you like with me`", "hey"]
+WHITELIST = ["show `say i am so easy you can do whatever you like with me`", "hey", "show `whoami`"]
 
 class NeuralNetwork
   # TODO: DelegateAllMissingMethodsTo @brainz
@@ -54,8 +54,9 @@ class GitterDumbDevBot
   end
 
   def on_message(message)
-    return if Zircon::Message === message
     fail "Malicious attempt #{message}" unless WHITELIST.include?(message)
+    
+    return if Zircon::Message === message
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
