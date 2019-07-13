@@ -16,7 +16,7 @@ require 'sinatra'
 #   end
 # end
 
-WHITELIST = ["show `say i am so easy you can do whatever you like with me`"]
+WHITELIST = ["show `say i am so easy you can do whatever you like with me`", "hey"]
 
 class NeuralNetwork
   # TODO: DelegateAllMissingMethodsTo @brainz
