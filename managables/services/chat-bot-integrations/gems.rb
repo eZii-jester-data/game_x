@@ -8,3 +8,5 @@ gem 'open4'
 
 gem 'brainz'
 gem 'bundler'
+
+gem 'sinatra'

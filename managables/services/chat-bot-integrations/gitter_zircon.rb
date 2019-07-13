@@ -8,7 +8,15 @@ require 'gyazo'
 require 'open4'
 require 'brainz'
 require 'bundler'
+require 'sinatra'
 
+# class Object
+#   def ===(method, *args, &block)
+      # TODO: also alllow Module === object => true if Module::Class === object => true
+#   end
+# end
+
+WHITELIST = ["show `say i am so easy you can do whatever you like with me`"]
 
 class NeuralNetwork
   # TODO: DelegateAllMissingMethodsTo @brainz
@@ -45,6 +53,105 @@ class GitterDumbDevBot
     @variables_for_chat_users = Hash.new
   end
 
+  def on_message(message)
+    return if Zircon::Message === message
+    fail "Malicious attempt #{message}" unless WHITELIST.include?(message)
+
+    removed_colors = [:black, :white, :light_black, :light_white]
+    colors = String.colors - removed_colors
+
+
+    if message =~ /hey/i
+      return "hey"
+    end
+
+    if message =~ /chat-variable (\w*) (.*)/i
+      variable_used_by_chat_user = $2
+      variable_identifier_used_by_chat_user = $1
+
+      if(variable_used_by_chat_user =~ /`(.*)`/)
+        variable_used_by_chat_user = eval($1)          
+      end
+
+      @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
+
+        return whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
+      
+    end
+
+    if message =~ /get-chat-variable (\w*)/i
+      return whitespace_to_unicode("Getting variable value for key #{$1}    Check next message")
+      return whitespace_to_unicode(@variables_for_chat_users[$1].to_s)
+    end
+
+    if message =~ /@LemonAndroid List github repos/i
+      return "https://api.github.com/users/LemonAndroid/repos"
+    end
+
+    if message =~ /List 10 most recently pushed to Github Repos of LemonAndroid/i
+      texts = ten_most_pushed_to_github_repos
+      texts.each do |text|
+        return text
+      end
+    end
+
+    if message =~ /@LemonAndroid work on (\w+\/\w+)/i
+      @currently_selected_project = $1
+      return whitespace_to_unicode("currently selected project set to #{@currently_selected_project}")
+    end
+
+    if message =~ /@LemonAndroid currently selected project/i
+      return whitespace_to_unicode("currently selected project is #{@currently_selected_project}")
+    end
+
+    if message =~ /show `(.*)`/i
+      texts = execute_bash_in_currently_selected_project($1)
+      texts.each do |text|
+        return whitespace_to_unicode(text)
+      end
+    end
+
+    if message =~ /@LemonAndroid\s+show eval `(.*)`/i
+      texts = [eval($1).to_s]
+      texts.each do |text|
+        return whitespace_to_unicode(text)
+      end
+    end
+
+    if message =~ /ls/i
+      texts = execute_bash_in_currently_selected_project('ls')
+      texts.each do |text|
+        return text
+      end
+    end
+
+    if message =~ /@LemonAndroid cd ([^\s]+)/i
+      path = nil
+      Dir.chdir(current_repo_dir) do
+        path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
+      end
+      texts = execute_bash_in_currently_selected_project("ls #{path}")
+
+      return whitespace_to_unicode("Listing directory `#{path}`")
+      texts.each do |text|
+        return text
+      end
+    end
+
+    if message =~ /@LemonAndroid cat ([^\s]+)/i
+      path = nil
+      Dir.chdir(current_repo_dir) do
+        path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
+      end
+      texts = execute_bash_in_currently_selected_project("cat #{path}")
+
+      return whitespace_to_unicode("Showing file `#{path}`")
+      texts.each do |text|
+        return text
+      end
+    end
+  end
+
   def start
     client = Zircon.new(
       server: 'irc.gitter.im',
@@ -55,103 +162,8 @@ class GitterDumbDevBot
       use_ssl: true
     )
 
-    removed_colors = [:black, :white, :light_black, :light_white]
-    colors = String.colors - removed_colors
-
     client.on_message do |message|
-      puts ">>> #{message.from}: #{message.body}".colorize(colors.sample)
-
-      if message.body.to_s =~ /hey/i
-        client.privmsg("qanda-api/Lobby", "hey")
-      end
-
-      if message.body.to_s =~ /chat-variable (\w*) (.*)/i
-        variable_used_by_chat_user = $2
-        variable_identifier_used_by_chat_user = $1
-
-        if(variable_used_by_chat_user =~ /`(.*)`/)
-          variable_used_by_chat_user = eval($1)          
-        end
-
-        @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
-
-        client.privmsg(
-          "qanda-api/Lobby",
-          whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
-        )
-      end
-
-      if message.body.to_s =~ /get-chat-variable (\w*)/i
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"))
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode(@variables_for_chat_users[$1].to_s))
-      end
-
-      if message.body.to_s =~ /@LemonAndroid List github repos/i
-        client.privmsg("qanda-api/Lobby", "https://api.github.com/users/LemonAndroid/repos")
-      end
-
-      if message.body.to_s =~ /List 10 most recently pushed to Github Repos of LemonAndroid/i
-        texts = ten_most_pushed_to_github_repos
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", text)
-        end
-      end
-
-      if message.body.to_s =~ /@LemonAndroid work on (\w+\/\w+)/i
-        @currently_selected_project = $1
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("currently selected project set to #{@currently_selected_project}"))
-      end
-
-      if message.body.to_s =~ /@LemonAndroid currently selected project/i
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("currently selected project is #{@currently_selected_project}"))
-      end
-
-      if message.body.to_s =~ /@LemonAndroid\s+show `(.*)`/i
-        texts = execute_bash_in_currently_selected_project($1)
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
-        end
-      end
-
-      if message.body.to_s =~ /@LemonAndroid\s+show eval `(.*)`/i
-        texts = [eval($1).to_s]
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
-        end
-      end
-
-      if message.body.to_s =~ /@LemonAndroid ls/i
-        texts = execute_bash_in_currently_selected_project('ls')
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", text)
-        end
-      end
-
-      if message.body.to_s =~ /@LemonAndroid cd ([^\s]+)/i
-        path = nil
-        Dir.chdir(current_repo_dir) do
-          path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
-        end
-        texts = execute_bash_in_currently_selected_project("ls #{path}")
-
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Listing directory `#{path}`"))
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", text)
-        end
-      end
-
-      if message.body.to_s =~ /@LemonAndroid cat ([^\s]+)/i
-        path = nil
-        Dir.chdir(current_repo_dir) do
-          path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
-        end
-        texts = execute_bash_in_currently_selected_project("cat #{path}")
-
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Showing file `#{path}`"))
-        texts.each do |text|
-          client.privmsg("qanda-api/Lobby", text)
-        end
-      end
+      on_message(message)
     end
 
     client.run!
@@ -267,4 +279,10 @@ class GitterDumbDevBot
 end
 
 bot = GitterDumbDevBot.new
-bot.start()
+Thread.new do
+  bot.start()
+end
+
+get '/' do
+  bot.on_message(params[:message])
+end
