@@ -23,7 +23,8 @@ BLACKLIST = [
   "show `whoami`",
   "show `ifconfig`",
   "chat-variable bot0 `NeuralNetwork()`",
-  "get-chat-variable bot0"
+  "get-chat-variable bot0",
+  "What do you think?"
 ]
 
 class NeuralNetwork
@@ -37,16 +38,50 @@ class NeuralNetwork
     @brainz = Brainz::Brainz.new
   end
 
-  def to_s
-    var = """
-      #{@brainz.to_s}
-    """
+  def verbose_introspect(very_verbose = false)
+    var = <<~HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
+      ```
+      Brainz Rubygem (wrapper)
+      Ruby object id: #{@brainz.object_id}
+      ```
 
-    var += """
-      #{@brainz.network.input.to_s}
-      #{@brainz.network.hidden.to_s}
-      #{@brainz.network.output.to_s}
-    """ unless @brainz.network.nil?
+      ```
+      Instance variables
+      ```
+
+      ```
+      #{@brainz.instance_variables}
+      ```
+    HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
+  
+    if very_verbose
+      var = <<~HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
+        ```
+        Public methods
+        ```
+
+        ```
+        #{@brainz.public_methods - Object.new.public_methods}
+        ```
+      HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
+    end
+
+    
+    unless @brainz.network.nil?
+      # var += <<~HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
+      #   ```
+      #   #{@brainz.network.input.to_s}
+      #   #{@brainz.network.hidden.to_s}
+      #   #{@brainz.network.output.to_s}
+      #   ```
+      # HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD 
+    end
+
+    return var
+  end
+
+  def to_s
+    verbose_introspect
   end
 
 end
@@ -61,17 +96,32 @@ class GitterDumbDevBot
     @variables_for_chat_users = Hash.new
   end
 
+  def load()
+    fail [:info, :no_marshaled_data_found].join(' > ') unless File.exists?("/var/gam-discord-bot.ruby-marshal")
+    data = File.read("/var/gam-discord-bot.ruby-marshal")
+    @variables_for_chat_users = Marshal.load(data)
+  end
+
+  def dump()
+    data = Marshal.dump(@variables_for_chat_users)
+    File.write("/var/gam-discord-bot.ruby-marshal", data)
+  end
+
   def on_message(message)
-    return "" unless WHITELIST.include?(message)
+    return "" unless BLACKLIST.include?(message)
 
     return if Zircon::Message === message
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
 
-
     if message =~ /hey/i
       return "hey"
+    end
+
+    
+    if message =~ /what do you think?/i
+      return "I think you're a stupid piece of shit and your dick smells worse than woz before he invented the home computer."
     end
 
     if message =~ /chat-variable (\w*) (.*)/i
@@ -84,14 +134,13 @@ class GitterDumbDevBot
 
       @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
 
-        return whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
-      
+      return whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
     end
 
     if message =~ /get-chat-variable (\w*)/i
        return [
         whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"),
-        whitespace_to_unicode(@variables_for_chat_users[$1].to_s)
+        whitespace_to_unicode(@variables_for_chat_users[$1].verbose_introspect(very_verbose=true))
        ].join
     end
 
@@ -289,11 +338,18 @@ class GitterDumbDevBot
   end
 end
 
-bot = GitterDumbDevBot.new
-Thread.new do
-  bot.start()
-end
+begin
+  bot = GitterDumbDevBot.new
 
-get '/' do
-  bot.on_message(params[:message])
+  bot.load()
+
+  # Thread.new do
+  #   bot.start()
+  # end
+
+  get '/' do
+    bot.on_message(params[:message])
+  end
+ensure
+  bot.dump()
 end

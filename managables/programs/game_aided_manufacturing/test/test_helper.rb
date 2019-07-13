@@ -10,7 +10,7 @@ DRb.start_service
 
 module SystemTests
   class AbstractSystemTest < Minitest::Test
-    SERVER_URI="druby://localhost:1234"
+    SERVER_URI="druby://localhost:65000"
 
     def drb_interface
       @drb_interface ||= DRbObject.new_with_uri(SERVER_URI)
