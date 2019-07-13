@@ -7,6 +7,30 @@ require 'timeout'
 require 'gyazo'
 require 'open4'
 require 'brainz'
+require 'bundler'
+
+
+class NeuralNetwork
+  def initialize
+    @brainz = Brainz::Brainz.new
+  end
+
+  def to_s
+    var = """
+      #{@brainz.to_s}
+    """
+
+    var += """
+      #{@brainz.network.input.to_s}
+      #{@brainz.network.hidden.to_s}
+      #{@brainz.network.output.to_s}
+    """ unless @brainz.network.nil?
+  end
+end
+
+def NeuralNetwork()
+  NeuralNetwork.new
+end
 
 class GitterDumbDevBot
   def initialize
@@ -34,14 +58,25 @@ class GitterDumbDevBot
         client.privmsg("qanda-api/Lobby", "hey")
       end
 
-      if message.body.to_s =~ /chat-variable (\w*) (\w*)/i
-        @variables_for_chat_users[$1] = $2
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode("variable #{$2} set to #{@variables_for_chat_users[$1]}"))
+      if message.body.to_s =~ /chat-variable (\w*) (.*)/i
+        variable_used_by_chat_user = $2
+        variable_identifier_used_by_chat_user = $1
+
+        if(variable_used_by_chat_user =~ /`(.*)`/)
+          variable_used_by_chat_user = eval($1)          
+        end
+
+        @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
+
+        client.privmsg(
+          "qanda-api/Lobby",
+          whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
+        )
       end
 
       if message.body.to_s =~ /get-chat-variable (\w*)/i
         client.privmsg("qanda-api/Lobby", whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"))
-        client.privmsg("qanda-api/Lobby", whitespace_to_unicode(@variables_for_chat_users[$1]))
+        client.privmsg("qanda-api/Lobby", whitespace_to_unicode(@variables_for_chat_users[$1].to_s))
       end
 
       if message.body.to_s =~ /@LemonAndroid List github repos/i
@@ -65,8 +100,14 @@ class GitterDumbDevBot
       end
 
       if message.body.to_s =~ /@LemonAndroid\s+show `(.*)`/i
-
         texts = execute_bash_in_currently_selected_project($1)
+        texts.each do |text|
+          client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
+        end
+      end
+
+      if message.body.to_s =~ /@LemonAndroid\s+show eval `(.*)`/i
+        texts = [eval($1).to_s]
         texts.each do |text|
           client.privmsg("qanda-api/Lobby", whitespace_to_unicode(text))
         end

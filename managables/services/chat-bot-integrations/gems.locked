@@ -27,6 +27,7 @@ PLATFORMS
 
 DEPENDENCIES
   brainz
+  bundler
   byebug
   colorize
   gyazo

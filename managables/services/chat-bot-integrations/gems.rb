@@ -7,3 +7,4 @@ gem 'gyazo'
 gem 'open4'
 
 gem 'brainz'
+gem 'bundler'
