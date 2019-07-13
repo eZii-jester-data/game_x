@@ -57,11 +57,11 @@ class NeuralNetwork
     if very_verbose
       var = <<~HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
         ```
-        Public methods
+        Public methods (random sample of 3)
         ```
 
         ```
-        #{@brainz.public_methods - Object.new.public_methods}
+        #{(@brainz.public_methods - Object.new.public_methods).sample(3).join("\n")}
         ```
       HUMAN_SCRIPT_INTROSPECT_FOR_DISCORD
     end
@@ -139,7 +139,7 @@ class GitterDumbDevBot
 
     if message =~ /get-chat-variable (\w*)/i
        return [
-        whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"),
+        whitespace_to_unicode("Getting variable value for key #{$1}"),
         whitespace_to_unicode(@variables_for_chat_users[$1].verbose_introspect(very_verbose=true))
        ].join
     end
