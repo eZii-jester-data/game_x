@@ -11,6 +11,12 @@ require 'bundler'
 
 
 class NeuralNetwork
+  # TODO: DelegateAllMissingMethodsTo @brainz
+
+  def method_missing(method, *args, &block)
+    @brainz.public_send(method, *args, &block)
+  end
+
   def initialize
     @brainz = Brainz::Brainz.new
   end
@@ -26,6 +32,7 @@ class NeuralNetwork
       #{@brainz.network.output.to_s}
     """ unless @brainz.network.nil?
   end
+
 end
 
 def NeuralNetwork()
