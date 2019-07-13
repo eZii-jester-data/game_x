@@ -16,7 +16,15 @@ require 'sinatra'
 #   end
 # end
 
-WHITELIST = ["show `say i am so easy you can do whatever you like with me`", "hey", "show `whoami`"]
+# a whitelist could also be called blacklist when variables are real lol
+BLACKLIST = [
+  "show `say i am so easy you can do whatever you like with me`",
+  "hey",
+  "show `whoami`",
+  "show `ifconfig`",
+  "chat-variable bot0 `NeuralNetwork()`",
+  "get-chat-variable bot0"
+]
 
 class NeuralNetwork
   # TODO: DelegateAllMissingMethodsTo @brainz
@@ -54,8 +62,8 @@ class GitterDumbDevBot
   end
 
   def on_message(message)
-    fail "Malicious attempt #{message}" unless WHITELIST.include?(message)
-    
+    return "" unless WHITELIST.include?(message)
+
     return if Zircon::Message === message
 
     removed_colors = [:black, :white, :light_black, :light_white]
@@ -81,8 +89,10 @@ class GitterDumbDevBot
     end
 
     if message =~ /get-chat-variable (\w*)/i
-      return whitespace_to_unicode("Getting variable value for key #{$1}    Check next message")
-      return whitespace_to_unicode(@variables_for_chat_users[$1].to_s)
+       return [
+        whitespace_to_unicode("Getting variable value for key #{$1}    Check next message"),
+        whitespace_to_unicode(@variables_for_chat_users[$1].to_s)
+       ].join
     end
 
     if message =~ /@LemonAndroid List github repos/i
