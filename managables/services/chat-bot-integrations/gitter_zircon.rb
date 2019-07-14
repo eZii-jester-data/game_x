@@ -1,3 +1,23 @@
+# LemonAndroidToday at 6:56 PM
+# grep last message RBENV
+# pass ball to @notify.me
+# eezee probe twitter.com/lemonandroid 5
+# eezee probe "bundle exec rails new"
+# reset-eezee-probe
+# eezee probe "bundle exec rails new"
+# eezee probe "cd last-project"
+# eezee probe "bundle exec rails scaffold melts name:string type:string"
+# eezee probe "upload current-project"
+# bring to melting point eezee probe
+# melt by using wit.ai into "melt-rails-app" liquid
+# melting-point-show-liquids
+# cast "melt-rails-app-batch-0" from "melt-rails-app" lliquid
+# show melt-rails-app-batch-0 :3000
+# launch rocket "ask common stackoverflow questions" carry melt-rails-app-batch-0 > controllers folder
+# what do you think @stefan reich?
+
+
+
 require 'zircon'
 require 'colorize'
 require 'byebug'
@@ -218,13 +238,13 @@ class GitterDumbDevBot
       return """
         ```
           Local variables (5 first)
-          #{local_variables[0...5]}
+          #{local_variables.sample(5)}
 
           Instance variables (5 first)
-          #{instance_variables[0...5]}
+          #{instance_variables.sample(5)}
 
           Public methods (5 first)
-          #{public_methods[0...5]}
+          #{public_methods.sample(5)}
 
           ENV (120 first chars)
           #{ENV.inspect[0...120]}
