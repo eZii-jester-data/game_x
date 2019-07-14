@@ -10,3 +10,5 @@ gem 'brainz'
 gem 'bundler'
 
 gem 'sinatra'
+
+gem 'nokogiri'

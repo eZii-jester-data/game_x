@@ -9,6 +9,7 @@ require 'open4'
 require 'brainz'
 require 'bundler'
 require 'sinatra'
+require 'nokogiri'
 
 # class Object
 #   def ===(method, *args, &block)
@@ -16,8 +17,7 @@ require 'sinatra'
 #   end
 # end
 
-# a whitelist could also be called blacklist when variables are real lol
-BLACKLIST = [
+ALLOWED_MESSAGES_LIST = [
   "show `say i am so easy you can do whatever you like with me`",
   "hey",
   "show `whoami`",
@@ -32,8 +32,21 @@ BLACKLIST = [
   "who has ball",
   "space",
   "launch rocket google.com?q=]var[",
-  "launch rocket http://www.gigablast.com/search?c=main&format=json&q=]var["
+  "launch rocket http://www.gigablast.com/search?c=main&format=json&q=]var[",
+  "show activity stream",
+  "bring to melting point https://css-tricks.com/wp-content/uploads/2018/10/align-items.svg",
+  "melt",
+  "get-melting-point",
+  "bring to melting point last used picture"
 ]
+
+# DISALLOWED_MESSAGES_LIST = [
+#   `rm -rf /tmp`,
+#   'rm -rf /',
+#   'rm',
+#   'show `rm -fr /`',
+#   'show eval `exec("rm -fr")`'
+# ]
 
 class Method
   def source(limit=10)
@@ -116,7 +129,7 @@ class GitterDumbDevBot
     @players = Hash.new do |dictionary, identifier| 
       dictionary[identifier] = Hash.new
     end
-    @melting_point = "haha"
+    @melting_point_receivables = []
   end
 
   def load()
@@ -131,15 +144,20 @@ class GitterDumbDevBot
   end
 
   def on_message(message)
-    return "Message #{message} not included in BLACKLIST (which is my name for a whitelist)" unless BLACKLIST.include?(message)
-    # return "" unless BLACKLIST.include?(message)
+    # return "Message #{message} not included in ALLOWED_MESSAGES_LIST (which is my name for a whitelist)" unless ALLOWED_MESSAGES_LIST.include?(message)
+    return "" unless ALLOWED_MESSAGES_LIST.include?(message)
+    warn "Message #{message} not included in ALLOWED_MESSAGES_LIST (which is my name for a whitelist)" unless ALLOWED_MESSAGES_LIST.include?(message)
 
     return if Zircon::Message === message
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
 
-    if message =~ /\Ahey\Z/i
+    if message =~ /show activity stream/
+      return "https://sideways-snowman.glitch.me/"
+    end
+
+    if message =~ /hey\Z/i
       return "hey"
     end
 
@@ -164,8 +182,36 @@ class GitterDumbDevBot
       """
     end
 
+    if message =~ /\Abring to melting point #{melting_point_receiavable_regex}\Z/i
+      if($1 === "last used picture")
+        Nokogiri::HTML(`curl -L http://gazelle.botcompany.de/lastInput`)
+
+        url = doc.css('a').first.url
+
+        @melting_point_receivables.push(url)
+      end
+      @melting_point_receivables.push($1)
+    end
+
+    if message =~ /\Amelt\Z/
+      @melting_point = @melting_point_receivables.sample
+    end
+
+    if message =~ /\Aget-melting-point\Z/
+      return @melting_point
+    end
+
     if message =~ /launch rocket (.*)\]var\[(.*)/
-      return `curl -L #{$1 + @melting_point + $2}`[0...100]
+      url = $1 + @melting_point + $2
+      curl_response = `curl -L #{url}`[0...100]
+
+      return """
+        CURL
+        #{curl_response}
+
+        URL
+        #{url}
+      """
     end 
     
     if message =~ /\Awhat do you think?\Z/i
@@ -290,6 +336,10 @@ class GitterDumbDevBot
 
   def method_call_regex
     /\.#{variable_regex}/
+  end
+
+  def melting_point_receiavable_regex
+    /(.*)/
   end
 
   def start
