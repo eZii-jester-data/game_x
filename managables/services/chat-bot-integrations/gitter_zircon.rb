@@ -28,6 +28,17 @@ BLACKLIST = [
   "get-method-definition bot0.num_hidden"
 ]
 
+class Method
+  def source(limit=10)
+    file, line = source_location
+    if file && line
+      IO.readlines(file)[line-1,limit]
+    else
+      nil
+    end
+  end
+end
+
 class NeuralNetwork
   # TODO: DelegateAllMissingMethodsTo @brainz
 
@@ -145,7 +156,7 @@ class GitterDumbDevBot
     end
 
     if message =~ /get-method-definition #{variable_regex}#{method_call_regex}/
-      return $1 + $2
+      return @variables_for_chat_users[$1].method($2.to_sym).source
     end
 
     if message =~ /@LemonAndroid List github repos/i
