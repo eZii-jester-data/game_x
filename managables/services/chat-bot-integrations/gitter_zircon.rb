@@ -65,7 +65,11 @@ ALLOWED_MESSAGES_LIST = [
   "melt",
   "get-melting-point",
   "bring to melting point last used picture",
-  "probe https://www.twitch.tv/jamiepinelive 10s"
+  "probe https://www.twitch.tv/jamiepinelive 10s",
+  "probe https://www.twitch.tv/sudokid 5s",
+  "probe https://github.com/facebook/relay/commit/377ca939b5f5b46d57e11d4a1dfa7c4aecf5666b 50bytes",
+  "probe https://github.com/facebook/relay/commit/377ca939b5f5b46d57e11d4a1dfa7c4aecf5666b 150bytes",
+  "bring probes to melting point"
 ].map do |message|
   optional_prefix(EEZEE_PREFIX, message)
 end.flatten
@@ -160,6 +164,7 @@ class GitterDumbDevBot
       dictionary[identifier] = Hash.new
     end
     @melting_point_receivables = []
+    @probes = []
   end
 
   def load()
@@ -185,7 +190,7 @@ class GitterDumbDevBot
     -X POST 'https://api.twitch.tv/helix/clips?broadcaster_id=#{twitch_broadcaster_id}'`
 
     created_clip_json_response = JSON.parse(created_clip_json_response)
-
+    
     id = created_clip_json_response["data"][0]["id"]
     return "https://clips.twitch.tv/#{id}"
 
@@ -193,6 +198,19 @@ class GitterDumbDevBot
     # -X GET '#{url}'`
   end
 
+  def get_string_of_x_bytes_by_curling_url(url:, byte_count:)
+    str = `curl #{url}`
+    sub_zero_string = str.each_char.reduce("") do |acc, chr| # haha, sub sero string
+      unless acc.bytesize === byte_count
+        acc += chr
+      else
+        break acc
+      end
+    end
+
+    "`#{sub_zero_string.unpack('c*')}`"
+  end
+  
   def on_message(message)
     message.gsub!(EEZEE_PREFIX, '')
 
@@ -205,24 +223,44 @@ class GitterDumbDevBot
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
 
+    if message =~ /bring probes to melting point/
+      @melting_point_receivables.push(@probes)
+      @probes = []
+      return "all of them? melt all the precious probes you idiot?"
+    end
+
     if message =~ /probe (.*) (.*)/
       action = :log
 
       resource = $1
       probe_identifier = $2
 
-      if probe_identifier =~ /\d+s/
-        duration_seconds = $2
+      if probe_identifier =~ /(\d+)s/
+        duration_seconds = $1.to_i
       end
 
-      if resource =~ /twitch.tv/
+      if probe_identifier =~ /(\d+)bytes/
+        byte_count = $1.to_i
+      end
+
+      case resource
+      when /twitch.tv/
         twitch_url = resource
         action = :twitch
+      when /http/
+        action = :plain_curl
+        url = resource
       end
 
       case action
       when :twitch
-        return record_live_stream_video_and_upload_get_url(url: twitch_url, duration_seonds: duration_seconds)
+        probe = record_live_stream_video_and_upload_get_url(url: twitch_url, duration_seonds: duration_seconds)
+        @probes.push(probe)
+        return probe
+      when :plain_curl
+        probe = get_string_of_x_bytes_by_curling_url(url: url, byte_count: byte_count)
+        @probes.push(probe)
+        return probe
       end
     end
 
