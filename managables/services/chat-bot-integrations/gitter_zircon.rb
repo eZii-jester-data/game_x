@@ -27,7 +27,12 @@ BLACKLIST = [
   "What do you think?",
   "get-method-definition bot0.num_hidden",
   "chat-variable bot0brainz selectDiscordMessage",
-  "throw bomb"
+  "throw bomb",
+  "pass ball to @user",
+  "who has ball",
+  "space",
+  "launch rocket google.com?q=]var[",
+  "launch rocket http://www.gigablast.com/search?c=main&format=json&q=]var["
 ]
 
 class Method
@@ -108,6 +113,10 @@ class GitterDumbDevBot
   def initialize
     @currently_selected_project = "lemonandroid/gam"
     @variables_for_chat_users = Hash.new
+    @players = Hash.new do |dictionary, identifier| 
+      dictionary[identifier] = Hash.new
+    end
+    @melting_point = "haha"
   end
 
   def load()
@@ -123,17 +132,18 @@ class GitterDumbDevBot
 
   def on_message(message)
     return "Message #{message} not included in BLACKLIST (which is my name for a whitelist)" unless BLACKLIST.include?(message)
+    # return "" unless BLACKLIST.include?(message)
 
     return if Zircon::Message === message
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
 
-    if message =~ /hey/i
+    if message =~ /\Ahey\Z/i
       return "hey"
     end
 
-    if message =~ /throw bomb/i
+    if message =~ /\Athrow bomb\Z/i
       return """
         ```
           Local variables (5 first)
@@ -153,12 +163,30 @@ class GitterDumbDevBot
         ```
       """
     end
+
+    if message =~ /launch rocket (.*)\]var\[(.*)/
+      return `curl -L #{$1 + @melting_point + $2}`[0...100]
+    end 
     
-    if message =~ /what do you think?/i
+    if message =~ /\Awhat do you think?\Z/i
       return "I think you're a stupid piece of shit and your dick smells worse than woz before he invented the home computer."
     end
 
-    if message =~ /chat-variable (\w*) (.*)/i
+    if message =~ /\Apass ball to @(\w+)\Z/i
+      @players[$1][:hasBall] = :yes
+    end
+
+    if message =~ /\Awho has ball\Z/i
+      return @players.find { |k, v| v[:hasBall] == :yes }[0]
+    end
+
+    if message =~ /\Aspace\Z/
+      exec_bash_visually_and_post_process_strings(
+        '/Users/lemonandroid/gam-git-repos/LemonAndroid/gam/managables/programs/game_aided_manufacturing/test.sh'
+      )
+    end
+
+    if message =~ /\Achat-variable (\w*) (.*)\Z/i
       variable_value_used_by_chat_user = $2
       return "Coming soon" if variable_value_used_by_chat_user == "selectDiscordMessage"
       variable_identifier_used_by_chat_user = $1
@@ -172,29 +200,29 @@ class GitterDumbDevBot
       return space_2_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
     end
 
-    if message =~ /get-chat-variable (\w*)/i
+    if message =~ /\Aget-chat-variable (\w*)\Z/i
        return [
         space_2_unicode("Getting variable value for key #{$1}"),
         space_2_unicode(@variables_for_chat_users[$1].verbose_introspect(very_verbose=true))
        ].join
     end
 
-    if message =~ /get-method-definition #{variable_regex}#{method_call_regex}/
+    if message =~ /\Aget-method-definition #{variable_regex}#{method_call_regex}\Z/
       return @variables_for_chat_users[$1].method($2.to_sym).source
     end
 
-    if message =~ /@LemonAndroid List github repos/i
+    if message =~ /\A@LemonAndroid List github repos\Z/i
       return "https://api.github.com/users/LemonAndroid/repos"
     end
 
-    if message =~ /List 10 most recently pushed to Github Repos of LemonAndroid/i
+    if message =~ /\AList 10 most recently pushed to Github Repos of LemonAndroid\Z/i
       texts = ten_most_pushed_to_github_repos
       texts.each do |text|
         return text
       end
     end
 
-    if message =~ /@LemonAndroid work on (\w+\/\w+)/i
+    if message =~ /\A@LemonAndroid work on (\w+\/\w+)\Z/i
       @currently_selected_project = $1
       return space_2_unicode("currently selected project set to #{@currently_selected_project}")
     end
@@ -203,28 +231,26 @@ class GitterDumbDevBot
       return space_2_unicode("currently selected project is #{@currently_selected_project}")
     end
 
-    if message =~ /show `(.*)`/i
-      texts = execute_bash_in_currently_selected_project($1)
-      texts.each do |text|
-        return space_2_unicode(text)
-      end
+    if message =~ /\Ashow `(.*)`\Z/i
+      test = $1
+      exec_bash_visually_and_post_process_strings
     end
 
-    if message =~ /@LemonAndroid\s+show eval `(.*)`/i
+    if message =~ /\A@LemonAndroid\s+show eval `(.*)`\Z/i
       texts = [eval($1).to_s]
       texts.each do |text|
         return space_2_unicode(text)
       end
     end
 
-    if message =~ /ls/i
+    if message =~ /\Als\Z/i
       texts = execute_bash_in_currently_selected_project('ls')
       texts.each do |text|
         return text
       end
     end
 
-    if message =~ /@LemonAndroid cd ([^\s]+)/i
+    if message =~ /\A@LemonAndroid cd ([^\s]+)\Z/i
       path = nil
       Dir.chdir(current_repo_dir) do
         path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
@@ -237,7 +263,7 @@ class GitterDumbDevBot
       end
     end
 
-    if message =~ /@LemonAndroid cat ([^\s]+)/i
+    if message =~ /\A@LemonAndroid cat ([^\s]+)\Z/i
       path = nil
       Dir.chdir(current_repo_dir) do
         path = File.expand_path(File.join('.', Dir.glob("**/#{$1}")))
@@ -249,6 +275,13 @@ class GitterDumbDevBot
         return text
       end
     end
+  end
+
+  def exec_bash_visually_and_post_process_strings(test)
+    texts = execute_bash_in_currently_selected_project(test)
+    return texts.map do |text|
+       space_2_unicode(text)
+    end.join("\n")
   end
 
   def variable_regex
