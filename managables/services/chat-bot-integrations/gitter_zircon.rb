@@ -39,6 +39,7 @@ ALLOWED_MESSAGES_LIST = [
   "space",
   "launch rocket google.com?q=]var[",
   "launch rocket http://www.gigablast.com/search?c=main&format=json&q=]var[",
+  "launch rocket http://agi.blue/]var[",
   "show activity stream",
   "bring to melting point https://css-tricks.com/wp-content/uploads/2018/10/align-items.svg",
   "melt",
@@ -159,7 +160,8 @@ class GitterDumbDevBot
 
   def record_live_stream_video_and_upload_get_url(url:, duration_seonds:)
     twitch_username = twitch_username_from_url(url)
-    twitch_broadcaster_id = `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']} \
+    return twitch_username
+    twitch_broadcaster_id = `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']}' \
     -X GET 'https://api.twitch.tv/helix/users?login=#{twitch_username}'`
     return twitch_broadcaster_id
     return `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']} \
@@ -184,11 +186,11 @@ class GitterDumbDevBot
       resource = $1
       probe_identifier = $2
 
-      if probe_identifier ~= /\d+s/
+      if probe_identifier =~ /\d+s/
         duration_seconds = $2
       end
 
-      if resource ~= /twitch.tv/
+      if resource =~ /twitch.tv/
         twitch_url = resource
         action = :twitch
       end
