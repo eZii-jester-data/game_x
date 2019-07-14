@@ -24,7 +24,8 @@ BLACKLIST = [
   "show `ifconfig`",
   "chat-variable bot0 `NeuralNetwork()`",
   "get-chat-variable bot0",
-  "What do you think?"
+  "What do you think?",
+  "get-method-definition bot0.num_hidden"
 ]
 
 class NeuralNetwork
@@ -108,7 +109,7 @@ class GitterDumbDevBot
   end
 
   def on_message(message)
-    return "" unless BLACKLIST.include?(message)
+    raise "Message #{message} not included in BLACKLIST (which is my name for a whitelist)" unless BLACKLIST.include?(message)
 
     return if Zircon::Message === message
 
@@ -118,7 +119,6 @@ class GitterDumbDevBot
     if message =~ /hey/i
       return "hey"
     end
-
     
     if message =~ /what do you think?/i
       return "I think you're a stupid piece of shit and your dick smells worse than woz before he invented the home computer."
@@ -134,14 +134,18 @@ class GitterDumbDevBot
 
       @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
 
-      return whitespace_to_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
+      return space_2_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
     end
 
     if message =~ /get-chat-variable (\w*)/i
        return [
-        whitespace_to_unicode("Getting variable value for key #{$1}"),
-        whitespace_to_unicode(@variables_for_chat_users[$1].verbose_introspect(very_verbose=true))
+        space_2_unicode("Getting variable value for key #{$1}"),
+        space_2_unicode(@variables_for_chat_users[$1].verbose_introspect(very_verbose=true))
        ].join
+    end
+
+    if message =~ /get-method-definition #{variable_regex}#{method_call_regex}/
+      return $1 + $2
     end
 
     if message =~ /@LemonAndroid List github repos/i
@@ -157,24 +161,24 @@ class GitterDumbDevBot
 
     if message =~ /@LemonAndroid work on (\w+\/\w+)/i
       @currently_selected_project = $1
-      return whitespace_to_unicode("currently selected project set to #{@currently_selected_project}")
+      return space_2_unicode("currently selected project set to #{@currently_selected_project}")
     end
 
     if message =~ /@LemonAndroid currently selected project/i
-      return whitespace_to_unicode("currently selected project is #{@currently_selected_project}")
+      return space_2_unicode("currently selected project is #{@currently_selected_project}")
     end
 
     if message =~ /show `(.*)`/i
       texts = execute_bash_in_currently_selected_project($1)
       texts.each do |text|
-        return whitespace_to_unicode(text)
+        return space_2_unicode(text)
       end
     end
 
     if message =~ /@LemonAndroid\s+show eval `(.*)`/i
       texts = [eval($1).to_s]
       texts.each do |text|
-        return whitespace_to_unicode(text)
+        return space_2_unicode(text)
       end
     end
 
@@ -192,7 +196,7 @@ class GitterDumbDevBot
       end
       texts = execute_bash_in_currently_selected_project("ls #{path}")
 
-      return whitespace_to_unicode("Listing directory `#{path}`")
+      return space_2_unicode("Listing directory `#{path}`")
       texts.each do |text|
         return text
       end
@@ -205,11 +209,19 @@ class GitterDumbDevBot
       end
       texts = execute_bash_in_currently_selected_project("cat #{path}")
 
-      return whitespace_to_unicode("Showing file `#{path}`")
+      return space_2_unicode("Showing file `#{path}`")
       texts.each do |text|
         return text
       end
     end
+  end
+
+  def variable_regex
+    /(\w[_\w]*)/
+  end
+
+  def method_call_regex
+    /\.#{variable_regex}/
   end
 
   def start
@@ -272,13 +284,13 @@ class GitterDumbDevBot
           process = Open4.bg(hopefully_bash_command, 0 => '', 1 => stdout, 2 => stderr)
           sleep 1
           
-          texts_array = whitespace_to_unicode_array(stdout.split("\n"))
-          texts_array += whitespace_to_unicode_array(stderr.split("\n"))
+          texts_array = space_2_unicode_array(stdout.split("\n"))
+          texts_array += space_2_unicode_array(stderr.split("\n"))
           texts_array + screen_captures_of_visual_processes(process.pid)
         end
       end
     else
-      return whitespace_to_unicode_array(
+      return space_2_unicode_array(
         [
           "Currently selected project (#{@currently_selected_project}) not cloned",
           "Do you want to clone it to the VisualServer with the name \"#{`whoami`.rstrip}\"?"
@@ -326,14 +338,14 @@ class GitterDumbDevBot
       project["full_name"]
     end
     
-    whitespace_to_unicode_array(processed_output)
+    space_2_unicode_array(processed_output)
   end
 
-  def whitespace_to_unicode_array(texts)
-    texts.map { |text| whitespace_to_unicode(text) }
+  def space_2_unicode_array(texts)
+    texts.map { |text| space_2_unicode(text) }
   end
 
-  def whitespace_to_unicode(text)
+  def space_2_unicode(text)
     text.gsub(/\s/, "\u2000")
   end
 end
