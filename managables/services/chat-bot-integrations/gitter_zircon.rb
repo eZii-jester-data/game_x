@@ -25,7 +25,9 @@ BLACKLIST = [
   "chat-variable bot0 `NeuralNetwork()`",
   "get-chat-variable bot0",
   "What do you think?",
-  "get-method-definition bot0.num_hidden"
+  "get-method-definition bot0.num_hidden",
+  "chat-variable bot0brainz selectDiscordMessage",
+  "throw bomb"
 ]
 
 class Method
@@ -120,7 +122,7 @@ class GitterDumbDevBot
   end
 
   def on_message(message)
-    raise "Message #{message} not included in BLACKLIST (which is my name for a whitelist)" unless BLACKLIST.include?(message)
+    return "Message #{message} not included in BLACKLIST (which is my name for a whitelist)" unless BLACKLIST.include?(message)
 
     return if Zircon::Message === message
 
@@ -130,20 +132,42 @@ class GitterDumbDevBot
     if message =~ /hey/i
       return "hey"
     end
+
+    if message =~ /throw bomb/i
+      return """
+        ```
+          Local variables (5 first)
+          #{local_variables[0...5]}
+
+          Instance variables (5 first)
+          #{instance_variables[0...5]}
+
+          Public methods (5 first)
+          #{public_methods[0...5]}
+
+          ENV (120 first chars)
+          #{ENV.inspect[0...120]}
+
+          \`ifconfig\` (120 first chars)
+          #{`ifconfig`[0...120]}
+        ```
+      """
+    end
     
     if message =~ /what do you think?/i
       return "I think you're a stupid piece of shit and your dick smells worse than woz before he invented the home computer."
     end
 
     if message =~ /chat-variable (\w*) (.*)/i
-      variable_used_by_chat_user = $2
+      variable_value_used_by_chat_user = $2
+      return "Coming soon" if variable_value_used_by_chat_user == "selectDiscordMessage"
       variable_identifier_used_by_chat_user = $1
 
-      if(variable_used_by_chat_user =~ /`(.*)`/)
-        variable_used_by_chat_user = eval($1)          
+      if(variable_value_used_by_chat_user =~ /`(.*)`/)
+        variable_value_used_by_chat_user = eval($1)          
       end
 
-      @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_used_by_chat_user
+      @variables_for_chat_users[variable_identifier_used_by_chat_user] = variable_value_used_by_chat_user
 
       return space_2_unicode("variable #{variable_identifier_used_by_chat_user} set to #{@variables_for_chat_users[variable_identifier_used_by_chat_user]}")
     end
