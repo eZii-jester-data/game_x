@@ -305,7 +305,13 @@ class GitterDumbDevBot
     end
 
     if message =~ /\Amelt\Z/
+      # First step, assigning a variable
       @melting_point = @melting_point_receivables.sample
+      # Next step, doing something intelligent with the data
+      # loosening it up somehow
+      # LIQUIDIFYING IT
+      # CONVERTING IT ALL TO BYTES
+      # PRESERVING VOLUME, just changing it's "Aggregatzustand"
     end
 
     if message =~ /\Aget-melting-point\Z/
