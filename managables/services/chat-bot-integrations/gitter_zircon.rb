@@ -17,6 +17,12 @@ require 'nokogiri'
 #   end
 # end
 
+def optional_prefix(prefix, message)
+  [prefix + message, message]
+end
+
+EEZEE_PREFIX = "eezee" + " "
+
 ALLOWED_MESSAGES_LIST = [
   "show `say i am so easy you can do whatever you like with me`",
   "hey",
@@ -37,8 +43,11 @@ ALLOWED_MESSAGES_LIST = [
   "bring to melting point https://css-tricks.com/wp-content/uploads/2018/10/align-items.svg",
   "melt",
   "get-melting-point",
-  "bring to melting point last used picture"
-]
+  "bring to melting point last used picture",
+  "probe https://www.twitch.tv/jamiepinelive 10s"
+].map do |message|
+  optional_prefix(EEZEE_PREFIX, message)
+end.flatten
 
 # DISALLOWED_MESSAGES_LIST = [
 #   `rm -rf /tmp`,
@@ -143,7 +152,23 @@ class GitterDumbDevBot
     File.write("/var/gam-discord-bot.ruby-marshal", data)
   end
 
+  def twitch_username_from_url(url)
+    url.gsub(/\/(.*)/)
+    return $1
+  end
+
+  def record_live_stream_video_and_upload_get_url(url:, duration_seonds:)
+    twitch_username = twitch_username_from_url(url)
+    twitch_broadcaster_id = `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']} \
+    -X GET 'https://api.twitch.tv/helix/users?login=#{twitch_username}'`
+    return twitch_broadcaster_id
+    return `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']} \
+    -X POST 'https://api.twitch.tv/helix/clips?broadcaster_id=#{twitch_broadcaster_id}'`
+  end
+
   def on_message(message)
+    message.gsub!(EEZEE_PREFIX, '')
+
     # return "Message #{message} not included in ALLOWED_MESSAGES_LIST (which is my name for a whitelist)" unless ALLOWED_MESSAGES_LIST.include?(message)
     return "" unless ALLOWED_MESSAGES_LIST.include?(message)
     warn "Message #{message} not included in ALLOWED_MESSAGES_LIST (which is my name for a whitelist)" unless ALLOWED_MESSAGES_LIST.include?(message)
@@ -152,6 +177,27 @@ class GitterDumbDevBot
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
+
+    if message =~ /probe (.*) (.*)/
+      action = :log
+
+      resource = $1
+      probe_identifier = $2
+
+      if probe_identifier ~= /\d+s/
+        duration_seconds = $2
+      end
+
+      if resource ~= /twitch.tv/
+        twitch_url = resource
+        action = :twitch
+      end
+
+      case action
+      when :twitch
+        return record_live_stream_video_and_upload_get_url(url: twitch_url, duration_seonds: duration_seconds)
+      end
+    end
 
     if message =~ /show activity stream/
       return "https://sideways-snowman.glitch.me/"
