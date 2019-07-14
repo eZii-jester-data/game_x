@@ -154,17 +154,15 @@ class GitterDumbDevBot
   end
 
   def twitch_username_from_url(url)
-    url.gsub(/\/(.*)/)
-    return $1
+    url.match(/\/(\w*)\Z/)[1]
   end
 
   def record_live_stream_video_and_upload_get_url(url:, duration_seonds:)
+    byebug
     twitch_username = twitch_username_from_url(url)
-    return twitch_username
-    twitch_broadcaster_id = `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']}' \
-    -X GET 'https://api.twitch.tv/helix/users?login=#{twitch_username}'`
-    return twitch_broadcaster_id
-    return `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']} \
+    twitch_broadcaster_id = JSON.parse(`curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']}' \
+    -X GET 'https://api.twitch.tv/helix/users?login=#{twitch_username}'`)["data"][0]["id"]
+    return `curl -H 'Authorization: Bearer #{ENV['EZE_TWITCH_TOKEN']}' \
     -X POST 'https://api.twitch.tv/helix/clips?broadcaster_id=#{twitch_broadcaster_id}'`
   end
 
