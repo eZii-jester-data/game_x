@@ -1,22 +1,3 @@
-# LemonAndroidToday at 6:56 PM
-# grep last message RBENV
-# pass ball to @notify.me
-# eezee probe twitter.com/lemonandroid 5
-# eezee probe "bundle exec rails new"
-# reset-eezee-probe
-# eezee probe "bundle exec rails new"
-# eezee probe "cd last-project"
-# eezee probe "bundle exec rails scaffold melts name:string type:string"
-# eezee probe "upload current-project"
-# bring to melting point eezee probe
-# melt by using wit.ai into "melt-rails-app" liquid
-# melting-point-show-liquids
-# cast "melt-rails-app-batch-0" from "melt-rails-app" lliquid
-# show melt-rails-app-batch-0 :3000
-# launch rocket "ask common stackoverflow questions" carry melt-rails-app-batch-0 > controllers folder
-# what do you think @stefan reich?
-
-
 
 require 'zircon'
 require 'colorize'
@@ -44,32 +25,20 @@ end
 EEZEE_PREFIX = "eezee" + " "
 
 ALLOWED_MESSAGES_LIST = [
-  "show `say i am so easy you can do whatever you like with me`",
-  "hey",
-  "show `whoami`",
-  "show `ifconfig`",
-  "chat-variable bot0 `NeuralNetwork()`",
-  "get-chat-variable bot0",
-  "What do you think?",
-  "get-method-definition bot0.num_hidden",
-  "chat-variable bot0brainz selectDiscordMessage",
-  "throw bomb",
-  "pass ball to @user",
-  "who has ball",
-  "space",
-  "launch rocket google.com?q=]var[",
-  "launch rocket http://www.gigablast.com/search?c=main&format=json&q=]var[",
-  "launch rocket http://agi.blue/]var[",
-  "show activity stream",
-  "bring to melting point https://css-tricks.com/wp-content/uploads/2018/10/align-items.svg",
+  "fuck it",
+  "install ruby",
+  "do something useful",
+  "know context?",
+  "like do you know context you dum dum?",
+  "show `man ruby`",
+  "show `man netstat`",
+  "show `man telnet`",
+  "show `man traceroute`",
+  "lifecycle",
+  "bleeding",
+  "bleeding lifecycle",
   "melt",
-  "get-melting-point",
-  "bring to melting point last used picture",
-  "probe https://www.twitch.tv/jamiepinelive 10s",
-  "probe https://www.twitch.tv/sudokid 5s",
-  "probe https://github.com/facebook/relay/commit/377ca939b5f5b46d57e11d4a1dfa7c4aecf5666b 50bytes",
-  "probe https://github.com/facebook/relay/commit/377ca939b5f5b46d57e11d4a1dfa7c4aecf5666b 150bytes",
-  "bring probes to melting point"
+  "get-liquids-after-melting-point"
 ].map do |message|
   optional_prefix(EEZEE_PREFIX, message)
 end.flatten
@@ -163,8 +132,9 @@ class GitterDumbDevBot
     @players = Hash.new do |dictionary, identifier| 
       dictionary[identifier] = Hash.new
     end
-    @melting_point_receivables = []
+    @melting_point_receivables = ["puts 'hello word'"]
     @probes = []
+    @melted_liquids = []
   end
 
   def load()
@@ -222,6 +192,40 @@ class GitterDumbDevBot
 
     removed_colors = [:black, :white, :light_black, :light_white]
     colors = String.colors - removed_colors
+
+    if message =~ /fuck it/
+      return "https://pbs.twimg.com/media/D_ei8NdXkAAE_0l.jpg:large"
+    end
+
+    if message =~ /lifecycle/ && rand > 0.5
+      return """
+        LEARN -> IDEAS - BUILD -> CODE - MEASURE -> DATA - \\A
+      """
+    end
+
+    if message =~ /bleeding/ && rand > 0.5
+      return "extremely negative capital flow. go broke or die"
+    end
+
+    if message =~ /install ruby/
+      return "are you a webpacker or a bundlerine?"
+    end
+
+    if message =~ /do something useful/
+      return "i'm learning, go pick trash outside while i suprass you in every possible way!"
+    end
+    
+    # if message =~ /know context?/ && rand > 0.2
+    #   return "huh?"
+    # end
+
+    if message =~ /like do you know context you dum dum?/
+      # return "http://gazelle.botcompany.de/"
+      byebug
+      doc = Nokogiri::HTML(`curl -L http://gazelle.botcompany.de/lastInput`)
+
+      return doc.css('*').map(&:inspect).inspect[0...100]
+    end
 
     if message =~ /bring probes to melting point/
       @melting_point_receivables.push(@probes)
@@ -304,9 +308,23 @@ class GitterDumbDevBot
       @melting_point_receivables.push($1)
     end
 
+    if message =~ /get-liquids-after-melting-point/
+      return @melted_liquids.inspect[0...100]
+    end
+
     if message =~ /\Amelt\Z/
+      byebug
       # First step, assigning a variable
       @melting_point = @melting_point_receivables.sample
+
+      def liquidify_via_string(object)
+        object.to_s.unpack("B*")
+      end
+      liquid = liquidify_via_string(@melting_point)
+
+      @melted_liquids.push(liquid)
+
+      return "Melted liquid which is now #{liquid.object_id} (ruby object id)"
       # Next step, doing something intelligent with the data
       # loosening it up somehow
       # LIQUIDIFYING IT
@@ -396,7 +414,7 @@ class GitterDumbDevBot
 
     if message =~ /\Ashow `(.*)`\Z/i
       test = $1
-      exec_bash_visually_and_post_process_strings
+      return exec_bash_visually_and_post_process_strings(test)
     end
 
     if message =~ /\A@LemonAndroid\s+show eval `(.*)`\Z/i
@@ -517,11 +535,14 @@ class GitterDumbDevBot
           stdout = ''
           stderr = ''
           process = Open4.bg(hopefully_bash_command, 0 => '', 1 => stdout, 2 => stderr)
-          sleep 1
+          sleep 0.5
+
           
           texts_array = space_2_unicode_array(stdout.split("\n"))
           texts_array += space_2_unicode_array(stderr.split("\n"))
-          texts_array + screen_captures_of_visual_processes(process.pid)
+
+          return [texts_array[1][0...120]]
+          # texts_array + screen_captures_of_visual_processes(process.pid)
         end
       end
     else
