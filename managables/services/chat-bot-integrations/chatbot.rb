@@ -184,6 +184,11 @@ class GitterDumbDevBot
   end
   
   def on_message(message)
+    require 'wit'
+
+    client = Wit.new(access_token: ENV["WIT_AI_TOKEN"])
+    client.message(message)
+
     message.gsub!(EEZEE_PREFIX, '')
 
     # return "Message #{message} not included in ALLOWED_MESSAGES_LIST (which is my name for a whitelist)" unless ALLOWED_MESSAGES_LIST.include?(message)

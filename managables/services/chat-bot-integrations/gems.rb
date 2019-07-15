@@ -5,10 +5,9 @@ gem 'colorize'
 gem 'byebug'
 gem 'gyazo'
 gem 'open4'
-
 gem 'brainz'
 gem 'bundler'
-
 gem 'sinatra'
-
 gem 'nokogiri'
+
+gem 'wit'
