@@ -38,7 +38,8 @@ ALLOWED_MESSAGES_LIST = [
   "bleeding",
   "bleeding lifecycle",
   "melt",
-  "get-liquids-after-melting-point"
+  "get-liquids-after-melting-point",
+  "probe last message full version size"
 ].map do |message|
   optional_prefix(EEZEE_PREFIX, message)
 end.flatten
@@ -135,6 +136,7 @@ class GitterDumbDevBot
     @melting_point_receivables = ["puts 'hello word'"]
     @probes = []
     @melted_liquids = []
+    @sent_messages = []
   end
 
   def load()
@@ -199,12 +201,16 @@ class GitterDumbDevBot
 
     if message =~ /lifecycle/ && rand > 0.5
       return """
-        LEARN -> IDEAS - BUILD -> CODE - MEASURE -> DATA - \\A
+        LEARN -> IDEAS - BUILD -> CODE - MEASURE -> DATA - go back to \\A
       """
     end
 
     if message =~ /bleeding/ && rand > 0.5
       return "extremely negative capital flow. go broke or die"
+    end
+
+    if message =~ /bleeding lifecycle/ && rand > 0.2
+      return "lifecycle IDEAS -> CODE -> MEASURE -> GO OUT PICK TRASH UP -> COLLECT ALL MONEY AND DONATE ON BETTERPLACE -> go back to \\A"
     end
 
     if message =~ /install ruby/
@@ -309,11 +315,18 @@ class GitterDumbDevBot
     end
 
     if message =~ /get-liquids-after-melting-point/
-      return @melted_liquids.inspect[0...100]
+      @sent_messages.push(
+        [@melted_liquids.inspect, @melted_liquids.inspect[0...100]]
+      )
+      return @sent_messages[-1][1]
+    end
+
+    byebug
+    if message =~ /probe last message full version size/
+      return @sent_messages[-1][0].bytesize.to_s + 'bytes'
     end
 
     if message =~ /\Amelt\Z/
-      byebug
       # First step, assigning a variable
       @melting_point = @melting_point_receivables.sample
 
