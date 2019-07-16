@@ -222,17 +222,26 @@ class GitterDumbDevBot
       """
     end
 
-    if message =~ /get postgresql url/
-      `rails new myapp --database=postgresql`
-      `cd myapp`
-      `
-      git init
-      git add .
-      git commit -m "init"
-      `
+    if message =~ /get postgresql password/
+      return "6nlebIKxsQzdSeqINkWsHmnATX0V0X40"
+    end
 
-      `heroku create`
-      `git push heroku master`
+
+    if message =~ /get postgresql url/
+      # `
+      # rails new myapp --database=postgresql
+      # cd myapp
+      # git init
+      # git add .
+      # git commit -m "init"
+      # heroku create
+      # bundle update --bundler
+      # gem install bundler:2.0.0
+      # git push heroku master
+      # `
+
+      return "postgres://qasglsjm:6nlebI...@raja.db.elephantsql.com:5432/qasglsjm"
+      #`heroku run rails console`
     end
 
     return ""
