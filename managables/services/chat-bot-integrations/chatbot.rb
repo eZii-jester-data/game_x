@@ -187,7 +187,76 @@ class GitterDumbDevBot
     require 'wit'
 
     client = Wit.new(access_token: ENV["WIT_AI_TOKEN"])
-    client.message(message)
+    response = client.message(message)
+
+    server_client = Wit.new(access_token: ENV['WIT_AI_TOKEN_SERVER'])
+    if message =~ /new entity for wit.ai eezee probe explainer\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s+(\w+)\s*/i
+      wit_ai_entity_payload = {
+        doc: $1,
+        id: $2,
+        values:[
+          {
+            value: $3,
+            expressions:
+              [
+                $4,
+                $5,
+                $6
+              ]
+          }
+        ]
+      }
+      begin
+        response = server_client.post_entities(wit_ai_entity_payload)
+      rescue Exception => e
+        return """
+          #{e.inspect}
+          #{e.message}
+        """
+      end
+
+      return """
+        New entity created on wit.ai #{$1}
+
+        #{response[0...140]}
+      """
+    end
+
+    if message =~ /get postgresql url/
+      `rails new myapp --database=postgresql`
+      `cd myapp`
+      `
+      git init
+      git add .
+      git commit -m "init"
+      `
+
+      `heroku create`
+      `git push heroku master`
+    end
+
+    return ""
+    # return response.inspect[0...250]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     message.gsub!(EEZEE_PREFIX, '')
 
@@ -326,7 +395,6 @@ class GitterDumbDevBot
       return @sent_messages[-1][1]
     end
 
-    byebug
     if message =~ /probe last message full version size/
       return @sent_messages[-1][0].bytesize.to_s + 'bytes'
     end
