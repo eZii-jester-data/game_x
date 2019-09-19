@@ -390,8 +390,8 @@ class Gam
         CUBES.sample.fall_down    
       end
 
-      unless CUBES.sample.nil?
-        cube = TeZiiCube.new(CUBES.sample)
+      if !(     (cube = CUBES).sample.nil? || @plane.nil?     )
+        cube = TeZiiCube.new(cube)
         plane = TeZiiCube.new(@plane)
 
         fail if cube.intersects_with?(plane)
@@ -421,9 +421,10 @@ class TeZiiCube
 
   def size
     [
-      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:width],
-      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:height],
-      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:depth]
+      # fail(self.wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters).inspect),
+      self.wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:width].inspect,
+      self.wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:height].inspect,
+      self.wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:depth].inspect
     ]
    
   end
@@ -435,9 +436,32 @@ class TeZiiCube
   # type of argument: TeZiiCube
   def intersects_with?(other_t_ezii_cube)
     width = other_t_ezii_cube.size[0]
+
+    
     height = other_t_ezii_cube.size[1]
+
     depth = other_t_ezii_cube.size[2]
 
     position = other_t_ezii_cube.instance_variable_get(:@wrapped_3d_object).position
+
+    width_self = self.size[0]
+    height_self = self.size[1]
+    depth_self = self.size[2]
+
+    position_self = self.instance_variable_get(:@wrapped_3d_object).position
+
+
+    condition_1 = position.x > self_position.x && position.y > self_position.y && position.z > self_position.z 
+    condition_2 = true
+    # condition_2 = position.y > self_position.x && position.y > self_position.y && position.z > self_position.z 
+    # condition_3
+    # condition_4
+    # condition_5
+    # condition_6
+    condition_7 = width > width_self && height > height_self && depth > depth_self
+
+    if condition_1 && condition_2 && condition_7
+      return true
+    end
   end
 end
