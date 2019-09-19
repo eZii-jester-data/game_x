@@ -384,6 +384,7 @@ class Gam
   end
 
   def start
+    ticks = 0
     @renderer.window.run do
       if @cube_fall_down
         CUBES.sample.fall_down    
@@ -391,10 +392,16 @@ class Gam
 
       unless CUBES.sample.nil?
         if @plane.position.y > CUBES.sample.position.y
-          fail "whatever"
+          ticks = 0 if ticks > 50
+          ticks += 1
+          # fail "whatever"
           previous_color = @plane.material.color.hex
-          @plane.material.color.set_hex(RED)
-          @plane.material.color.set_hex(previous_color)
+
+          if ticks > 10
+            @plane.material.color.set_hex(0x00ff00)
+          else
+            @plane.material.color.set_hex(RED)
+          end
         end
       end
 
