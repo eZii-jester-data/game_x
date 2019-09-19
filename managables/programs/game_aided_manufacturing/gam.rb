@@ -391,6 +391,11 @@ class Gam
       end
 
       unless CUBES.sample.nil?
+        cube = TeZiiCube.new(CUBES.sample)
+        plane = TeZiiCube.new(@plane)
+
+        fail if cube.intersects_with?(plane)
+
         if @plane.position.y > CUBES.sample.position.y
           ticks = 0 if ticks > 50
           ticks += 1
@@ -407,5 +412,32 @@ class Gam
 
       @renderer.render(@scene, @camera)
     end
+  end
+end
+
+# T for Teamwork
+class TeZiiCube
+  attr_accessor :wrapped_3d_object
+
+  def size
+    [
+      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:width],
+      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:height],
+      wrapped_3d_object.instance_variable_get(:@geometry).instance_variable_get(:@parameters)[:depth]
+    ]
+   
+  end
+
+  def initialize(wrapped_3d_object)
+    @wrapped_3d_object = wrapped_3d_object
+  end
+
+  # type of argument: TeZiiCube
+  def intersects_with?(other_t_ezii_cube)
+    width = other_t_ezii_cube.size[0]
+    height = other_t_ezii_cube.size[1]
+    depth = other_t_ezii_cube.size[2]
+
+    position = other_t_ezii_cube.instance_variable_get(:@wrapped_3d_object).position
   end
 end
