@@ -93,6 +93,7 @@ end
 
 class Gam
   SELECTED_CUBE_COLOR = 0xf4e842
+  RED = 0xf441dc
 
   # TODO: cubes array needds to be eliminated
   CUBES = []
@@ -125,6 +126,11 @@ class Gam
     end
   end
 
+  def forever
+    sleep 1
+    while true; yield; end
+  end
+
   def legacy_initialize
     @cube_index = 0
 
@@ -143,12 +149,12 @@ class Gam
     @camera = Mittsu::PerspectiveCamera.new(75.0, aspect, 0.1, 1000.0)
     @camera.position.z = 5.0
 
-    plane = Mittsu::Mesh.new(
+    @plane = Mittsu::Mesh.new(
       Mittsu::BoxGeometry.new(1.0, 10.0, 10.0),
       Mittsu::MeshBasicMaterial.new(color: 0x00ff00)
     )
 
-    @scene.add(plane)
+    @scene.add(@plane)
 
     waiting_for_w_console_command = false
 
@@ -168,13 +174,13 @@ class Gam
     @renderer.window.on_key_typed do |key|
       case key
       when GLFW_KEY_A
-        plane.rotation.x += 0.5
+        @plane.rotation.x += 0.5
       when GLFW_KEY_B
-        plane.rotation.y += 0.5
+        @plane.rotation.y += 0.5
       when GLFW_KEY_C
-        plane.rotation.x -= 0.5
+        @plane.rotation.x -= 0.5
       when GLFW_KEY_D
-        plane.rotation.y -= 0.1
+        @plane.rotation.y -= 0.1
       when GLFW_KEY_E
         @camera.position.x -= 0.1
       when GLFW_KEY_F
@@ -218,11 +224,23 @@ class Gam
         previously_selected_cube_color = CUBES[@cube_index].material.color.hex
         CUBES[@cube_index].material.color.set_hex(SELECTED_CUBE_COLOR)
       when GLFW_KEY_U
-        @scene.remove(plane)
+        @scene.remove(@plane)
       when GLFW_KEY_V
-        @scene.add(plane)
+        @scene.add(@plane)
       when GLFW_KEY_W
-        byebug
+        CUBES.sample.fall_down 
+
+        # while true
+          # forever { CUBES.sample.fall_down }
+
+          # sleep 0.002
+
+          # CUBES.sample.fall_down
+        # end
+
+        @cube_fall_down = true
+
+        # byebug
         # instance_exec(&console_function)
       when GLFW_KEY_X
         print_local_functions
@@ -367,6 +385,19 @@ class Gam
 
   def start
     @renderer.window.run do
+      if @cube_fall_down
+        CUBES.sample.fall_down    
+      end
+
+      unless CUBES.sample.nil?
+        if @plane.position.y > CUBES.sample.position.y
+          fail "whatever"
+          previous_color = @plane.material.color.hex
+          @plane.material.color.set_hex(RED)
+          @plane.material.color.set_hex(previous_color)
+        end
+      end
+
       @renderer.render(@scene, @camera)
     end
   end

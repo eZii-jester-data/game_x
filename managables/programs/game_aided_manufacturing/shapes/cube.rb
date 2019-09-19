@@ -23,6 +23,10 @@ class Cube
     )
   end
 
+  def fall_down
+    self.position.y -= 0.01
+  end
+
   def method_missing(method_name, *args, &block)
     @mittsu_object.public_send(method_name, *args, &block)
   end
