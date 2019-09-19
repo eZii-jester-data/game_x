@@ -6,3 +6,5 @@ gem 'os'
 
 gem 'byebug'
 gem 'pry-remote'
+
+gem "nokogiri", ">= 1.10.4"
